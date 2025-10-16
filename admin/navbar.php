@@ -46,10 +46,7 @@
             <span>Users</span>
         </a>
         
-        <a href="index.php?page=site_settings" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:text-red-700 hover:bg-red-100 <?php echo (isset($_GET['page']) && $_GET['page'] == 'site_settings') ? 'bg-gradient-to-r from-red-100 to-red-50 text-red-700 font-medium' : '' ?>">
-            <i class="fas fa-cog"></i> 
-            <span>Settings</span>
-        </a>
+        
         <a href="moderation.php" class="nav-item nav-moderation flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:text-primary-700 hover:bg-primary-100">
             <i class="fas fa-check-circle"></i>
             <span>Moderation</span>

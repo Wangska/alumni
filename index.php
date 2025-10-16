@@ -309,9 +309,8 @@ function event_commit_info($conn, $event_id, $user_id = null) {
     <header id="mainNav" class="fixed top-0 w-full z-40 py-4 transition-all duration-300 glass-dark shadow-lg backdrop-blur-lg">
         <div class="container mx-auto px-6">
             <div class="flex justify-between items-center">
-                <a href="./" class="flex items-center gap-3 text-white hover:opacity-90">
-                    <img src="admin/assets/img/scclogo.png" alt="SCC Logo" class="h-10 md:h-12 w-auto" style="max-width: 280px;" onerror="this.style.display='none'">
-                    <span class="sr-only">Home</span>
+                <a href="./" class="flex items-center gap-3 text-white hover:opacity-90 shrink-0">
+                    <img src="admin/assets/img/scclogo.png" alt="St. Cecilia's College - Cebu, Inc." class="h-12 md:h-14 w-auto object-contain" style="max-width: 640px;" onerror="this.style.display='none'">
                 </a>
 
                 <button id="mobile-menu-btn" class="md:hidden text-white p-2 rounded-lg hover:bg-white/10 transition-colors">
@@ -400,14 +399,15 @@ function event_commit_info($conn, $event_id, $user_id = null) {
         <div class="absolute bottom-1/4 left-1/3 w-80 h-80 bg-red-800/10 rounded-full blur-3xl floating-element"></div>
         <div class="container mx-auto px-6 text-center relative z-20">
             <div class="max-w-4xl mx-auto">
-                <img src="admin/assets/img/scc.png" alt="St. Cecilia's College" class="mx-auto mb-6 h-12 opacity-90" onerror="this.style.display='none'">
-                <h1 class="text-5xl md:text-7xl font-bold text-white mb-6 animate-fade-in italic">
-                    Welcome Home, St. Cecilia's Alumni!
+                <h1 class="text-5xl md:text-7xl font-bold text-white mb-6 animate-fade-in italic leading-tight">
+                    Welcome Home,
+                    <span class="block">St. Cecilia's Alumni!</span>
                 </h1>
                 <p class="text-xl md:text-2xl text-red-100 mb-8 animate-fade-in">
                     Reconnect, Remember, and Relive Your College Moments.
                 </p>
                 
+                <?php if(!isset($_SESSION['login_id'])): ?>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in">
                     <button onclick="openRegisterModal()" class="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white px-8 py-4 rounded-full text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-2xl hover:shadow-red-500/25">
                         <i class="fas fa-user-plus mr-2"></i>Join Now
@@ -416,6 +416,7 @@ function event_commit_info($conn, $event_id, $user_id = null) {
                         <i class="fas fa-play mr-2"></i>Learn More
                     </a>
                 </div>
+                <?php endif; ?>
             </div>
         </div>
         <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white animate-bounce-subtle">
