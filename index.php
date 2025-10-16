@@ -49,12 +49,12 @@ if ($res_total) {
 
 // Fetch approved success stories
 $stories = [];
-$res_st = $conn->query("SELECT ss.*, u.name FROM success_stories ss LEFT JOIN users u ON u.id = ss.user_id WHERE ss.status = 1 ORDER BY ss.created DESC LIMIT 6");
+$res_st = $conn->query("SELECT ss.*, u.name FROM success_stories ss LEFT JOIN users u ON u.id = ss.user_id WHERE ss.status = 1 ORDER BY ss.date_created DESC LIMIT 6");
 if ($res_st) { while($row=$res_st->fetch_assoc()) $stories[]=$row; }
 
 // Fetch approved testimonials
 $testimonials = [];
-$res_ts = $conn->query("SELECT t.*, u.name FROM testimonials t LEFT JOIN users u ON u.id=t.user_id WHERE t.status=1 ORDER BY t.created DESC LIMIT 6");
+$res_ts = $conn->query("SELECT t.*, u.name FROM testimonials t LEFT JOIN users u ON u.id=t.user_id WHERE t.status=1 ORDER BY t.date_created DESC LIMIT 6");
 if ($res_ts) { while($row=$res_ts->fetch_assoc()) $testimonials[]=$row; }
 
 // Fetch gallery images if any
@@ -540,27 +540,6 @@ function event_commit_info($conn, $event_id, $user_id = null) {
         </div>
     </section>
 
-    <!-- Contact -->
-    <section id="contact" class="py-20 bg-white">
-        <div class="container mx-auto px-6 max-w-5xl">
-            <h2 class="text-3xl font-bold text-red-700 mb-6">Contact Us</h2>
-            <div class="grid md:grid-cols-3 gap-6">
-                <div class="bg-red-50 p-6 rounded-xl">
-                    <h3 class="font-bold mb-2">Hours</h3>
-                    <p class="text-gray-700">Mon–Fri: 8:00 AM – 5:00 PM</p>
-                </div>
-                <div class="bg-red-50 p-6 rounded-xl">
-                    <h3 class="font-bold mb-2">Location</h3>
-                    <p class="text-gray-700">Cebu South National Highway, Ward II, Minglanilla, Cebu</p>
-                </div>
-                <div class="bg-red-50 p-6 rounded-xl">
-                    <h3 class="font-bold mb-2">Call Us</h3>
-                    <p class="text-gray-700">(000) 000 0000</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
     <!-- Story Modal -->
     <div id="storyModal" class="modal-overlay">
         <div class="modal-content max-w-xl" onclick="event.stopPropagation()">
@@ -648,96 +627,7 @@ function event_commit_info($conn, $event_id, $user_id = null) {
   }
 </style>
 
-<!-- Upcoming Events Section -->
-<section class="py-16 relative min-h-screen">
-  <div class="container mx-auto px-6">
-    <div class="max-w-5xl mx-auto">
-      <h2 class="text-4xl font-bold bg-gradient-to-r from-red-600 via-red-700 to-rose-600 inline-block text-transparent bg-clip-text mb-10 text-center">Upcoming Events</h2>
-      <div class="grid md:grid-cols-2 gap-8">
-        <?php if(count($events) === 0): ?>
-          <div class="col-span-2 text-center py-8 text-gray-400">
-            <div class="w-20 h-20 bg-red-100 rounded-3xl flex items-center justify-center mx-auto mb-4">
-              <i class="fas fa-calendar-times text-red-400 text-3xl"></i>
-            </div>
-            <span class="block text-lg font-semibold">No upcoming events.</span>
-          </div>
-        <?php endif; ?>
-        <?php foreach ($events as $e): 
-          $commit_info = event_commit_info($conn, $e['id'], $_SESSION['login_id'] ?? null);
-        ?>
-          <div class="rounded-3xl bg-white/90 backdrop-blur-lg shadow-2xl border border-red-100 p-8 hover:scale-[1.02] transition-transform duration-300 flex flex-col overflow-hidden mb-4 feature-card relative">
-            <!-- Decorative Circles -->
-            <div class="absolute top-0 right-0 w-24 h-24 bg-rose-100 rounded-full translate-x-8 -translate-y-8 opacity-30 pointer-events-none"></div>
-            <div class="absolute bottom-0 left-0 w-16 h-16 bg-red-100 rounded-full -translate-x-6 translate-y-6 opacity-20 pointer-events-none"></div>
-            <?php if(!empty($e['banner'])): ?>
-              <img src="admin/assets/uploads/<?php echo htmlspecialchars($e['banner']); ?>"
-                   alt="Banner for <?php echo htmlspecialchars($e['title']); ?>"
-                   class="event-banner mb-6 rounded-2xl border-2 border-red-200 shadow-lg w-full max-h-48 object-cover">
-            <?php endif; ?>
-            <div class="flex items-center mb-4">
-              <div class="bg-gradient-to-r from-red-600 to-rose-600 text-white p-3 rounded-full mr-4 shadow-lg">
-                <i class="fas fa-calendar-alt text-xl"></i>
-              </div>
-              <div>
-                <h3 class="text-xl font-bold text-gray-800 mb-1"><?php echo htmlspecialchars($e['title']) ?></h3>
-                <p class="text-gray-600 font-medium">Scheduled: <?php echo date('F j, Y', strtotime($e['schedule'])) ?> at <?php echo date('g:i A', strtotime($e['schedule'])) ?></p>
-              </div>
-            </div>
-            <p class="text-red-900/80 text-base leading-relaxed mb-4 bg-white/60 rounded-xl p-4 border border-red-100">
-              <?php echo nl2br(htmlspecialchars($e['content'])) ?>
-            </p>
-            <?php if(!empty($e['venue'])): ?>
-              <div class="text-sm text-red-900 mt-2 font-semibold flex items-center">
-                <i class="fas fa-map-marker-alt mr-2 text-red-600"></i><?php echo htmlspecialchars($e['venue']) ?>
-              </div>
-            <?php endif; ?>
-            <?php if(!empty($e['link'])): ?>
-              <div class="mt-4">
-                <a href="<?php echo htmlspecialchars($e['link']) ?>" target="_blank" class="text-red-600 font-medium hover:text-red-800 transition-colors inline-flex items-center">
-                  More Info <i class="fas fa-arrow-right ml-1"></i>
-                </a>
-              </div>
-            <?php endif; ?>
 
-            <!-- Commit Button and Info -->
-            <div class="mt-8 flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <span class="bg-gradient-to-r from-red-200 to-rose-200 text-red-700 px-3 py-1 rounded-full font-semibold text-sm shadow">
-                  <i class="fas fa-user-check mr-2"></i>
-                  <?php echo $commit_info['count']; ?> committed
-                </span>
-              </div>
-              <?php if(isset($_SESSION['login_id'])): ?>
-                <?php if($commit_info['committed']): ?>
-                  <button class="bg-green-600 text-white px-6 py-2 rounded-full font-semibold shadow hover:bg-green-700 transition" disabled>
-                    <i class="fas fa-check mr-2"></i>Committed
-                  </button>
-                <?php else: ?>
-                  <button class="bg-gradient-to-r from-red-600 to-rose-600 text-white px-6 py-2 rounded-full font-semibold shadow hover:bg-red-700 transition commit-btn"
-                    data-event-id="<?php echo $e['id']; ?>">
-                    <i class="fas fa-user-plus mr-2"></i>Commit to Event
-                  </button>
-                <?php endif; ?>
-              <?php else: ?>
-                <button onclick="openLoginModal()" class="bg-gradient-to-r from-red-400 to-rose-400 text-white px-6 py-2 rounded-full font-semibold shadow hover:bg-red-600 transition">
-                  <i class="fas fa-sign-in-alt mr-2"></i>Login
-                </button>
-              <?php endif; ?>
-            </div>
-          </div>
-        <?php endforeach; ?>
-      </div>
-      <?php if($total_upcoming > 4): ?>
-        <div class="flex justify-center mt-10">
-          <a href="events.php" class="bg-gradient-to-r from-red-600 to-rose-600 text-white px-8 py-3 rounded-full shadow-lg font-semibold text-lg hover:from-rose-700 hover:to-red-800 transition">
-            View All Events
-            <i class="fas fa-arrow-right ml-2"></i>
-          </a>
-        </div>
-      <?php endif; ?>
-    </div>
-  </div>
-</section>
 
  <!-- Enhanced Footer (Improved with Another Contact Info) -->
 <footer class="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white py-16 relative overflow-hidden">
