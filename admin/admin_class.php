@@ -1,18 +1,24 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 ini_set('display_errors', 1);
 Class Action {
 	private $db;
 
 	public function __construct() {
-		ob_start();
+		if (ob_get_level() == 0) {
+			ob_start();
+		}
    	include 'db_connect.php';
     
     $this->db = $conn;
 	}
 	function __destruct() {
 	    $this->db->close();
-	    ob_end_flush();
+	    if (ob_get_level() > 0) {
+	    	ob_end_flush();
+	    }
 	}
 
 	function login(){
@@ -69,18 +75,46 @@ Class Action {
 		}
 	}
 	function logout(){
-		session_destroy();
-		foreach ($_SESSION as $key => $value) {
-			unset($_SESSION[$key]);
+		// Clear session data first
+		$_SESSION = array();
+		
+		// Destroy session cookie
+		if (isset($_COOKIE[session_name()])) {
+			setcookie(session_name(), '', time()-42000, '/');
 		}
-		header("location:login.php");
+		
+		// Destroy session
+		session_destroy();
+		
+		// Redirect
+		if (!headers_sent()) {
+			header("location:login.php");
+			exit();
+		} else {
+			echo '<script>window.location.href="login.php";</script>';
+			exit();
+		}
 	}
 	function logout2(){
-		session_destroy();
-		foreach ($_SESSION as $key => $value) {
-			unset($_SESSION[$key]);
+		// Clear session data first
+		$_SESSION = array();
+		
+		// Destroy session cookie
+		if (isset($_COOKIE[session_name()])) {
+			setcookie(session_name(), '', time()-42000, '/');
 		}
-		header("location:../index.php");
+		
+		// Destroy session
+		session_destroy();
+		
+		// Redirect
+		if (!headers_sent()) {
+			header("location:../index.php");
+			exit();
+		} else {
+			echo '<script>window.location.href="../index.php";</script>';
+			exit();
+		}
 	}
 
 	function save_user(){
