@@ -49,12 +49,12 @@ if ($res_total) {
 
 // Fetch approved success stories
 $stories = [];
-$res_st = $conn->query("SELECT ss.*, u.name FROM success_stories ss LEFT JOIN users u ON u.id = ss.user_id WHERE ss.status = 1 ORDER BY ss.date_created DESC LIMIT 6");
+$res_st = $conn->query("SELECT ss.*, u.name FROM success_stories ss LEFT JOIN users u ON u.id = ss.user_id WHERE ss.status = 1 ORDER BY ss.created DESC LIMIT 6");
 if ($res_st) { while($row=$res_st->fetch_assoc()) $stories[]=$row; }
 
 // Fetch approved testimonials
 $testimonials = [];
-$res_ts = $conn->query("SELECT t.*, u.name FROM testimonials t LEFT JOIN users u ON u.id=t.user_id WHERE t.status=1 ORDER BY t.date_created DESC LIMIT 6");
+$res_ts = $conn->query("SELECT t.*, u.name FROM testimonials t LEFT JOIN users u ON u.id=t.user_id WHERE t.status=1 ORDER BY t.created DESC LIMIT 6");
 if ($res_ts) { while($row=$res_ts->fetch_assoc()) $testimonials[]=$row; }
 
 // Fetch gallery images if any
