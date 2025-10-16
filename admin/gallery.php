@@ -193,10 +193,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 
                 if ($uploadSuccess) {
-                    // Resize and optimize image
+                    // Try to optimize image, but don't fail if it doesn't work
                     $optimized = optimizeImage($targetPath, $targetPath);
                     if (!$optimized) {
-                        $uploadErrors[] = "Failed to optimize image.";
+                        // If optimization fails, just keep the original file
+                        // Don't add this as an error since the file was uploaded successfully
                     }
                 } else {
                     $uploadErrors[] = "Failed to save uploaded file. Please check directory permissions or run <a href='fix_permissions.php' target='_blank'>fix_permissions.php</a>.";
@@ -226,14 +227,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_param("si", $about, $id);
         $stmt->execute();
         if ($imgName) {
-            // Remove previous image
+            // Remove previous image (with error handling)
             $files = glob($uploadDirFs . "/{$id}_*");
             foreach ($files as $file) {
-                if (is_file($file)) unlink($file);
+                if (is_file($file)) {
+                    if (!@unlink($file)) {
+                        error_log("Could not delete old file: $file");
+                    }
+                }
             }
             // Rename to include ID prefix
             $finalName = $id . '_' . $imgName;
-            rename($targetPath, $uploadDirFs . "/$finalName");
+            if (!@rename($targetPath, $uploadDirFs . "/$finalName")) {
+                // If rename fails, try copy and delete
+                if (copy($targetPath, $uploadDirFs . "/$finalName")) {
+                    @unlink($targetPath);
+                }
+            }
         }
         $message = "Gallery updated successfully!";
     } else {
@@ -246,7 +256,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($imgName) {
             // Rename to include ID prefix
             $finalName = $newId . '_' . $imgName;
-            rename($targetPath, $uploadDirFs . "/$finalName");
+            if (!@rename($targetPath, $uploadDirFs . "/$finalName")) {
+                // If rename fails, try copy and delete
+                if (copy($targetPath, $uploadDirFs . "/$finalName")) {
+                    @unlink($targetPath);
+                }
+            }
         }
         $message = "Gallery added successfully!";
     }
@@ -267,10 +282,15 @@ if (isset($_GET['delete']) && $_GET['delete']) {
     $stmt = $conn->prepare("DELETE FROM gallery WHERE id = ?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
-    // Remove image files
+    // Remove image files (with error handling)
     $files = glob($uploadDirFs . "/{$id}_*");
     foreach ($files as $file) {
-        if (is_file($file)) unlink($file);
+        if (is_file($file)) {
+            if (!@unlink($file)) {
+                // If we can't delete the file, just log it but don't stop the process
+                error_log("Could not delete file: $file");
+            }
+        }
     }
     echo "<script>
         window.onload = function() { 
