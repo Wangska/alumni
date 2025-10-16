@@ -312,6 +312,9 @@ function event_commit_info($conn, $event_id, $user_id = null) {
                         <i class="fas fa-images mr-2"></i>Gallery
                     </a>
                     <div id="auth-links" class="flex items-center space-x-6">
+                        <button onclick="openAdminLoginModal()" class="nav-link text-white hover:text-red-300 px-4 py-2 rounded-lg flex items-center">
+                            <i class="fas fa-user-shield mr-2"></i>Admin
+                        </button>
                     <?php if(isset($_SESSION['login_username'])): ?>
                         <a href="careers.php" class="nav-link text-white hover:text-red-300 px-4 py-2 rounded-lg transition-all duration-300 flex items-center">
                             <i class="fas fa-briefcase mr-2"></i>Jobs
@@ -1065,6 +1068,17 @@ function event_commit_info($conn, $event_id, $user_id = null) {
             openLoginModal();
         }
 
+        // Admin modal controls
+        function openAdminLoginModal() {
+            document.getElementById('adminLoginModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeAdminLoginModal() {
+            document.getElementById('adminLoginModal').classList.remove('show');
+            document.body.style.overflow = 'auto';
+            document.getElementById('adminLoginError').classList.add('hidden');
+        }
+
         // Close modals on background click
         document.addEventListener('click', function(e) {
             if (e.target.id === 'loginModal') closeLoginModal();
@@ -1290,6 +1304,47 @@ function event_commit_info($conn, $event_id, $user_id = null) {
                 <span class="text-red-500 text-sm">Already have an account?</span>
                 <button onclick="switchToLogin()" class="ml-2 text-red-700 font-bold hover:text-rose-800 underline transition-all text-sm">Sign In</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Admin Login Modal -->
+    <div id="adminLoginModal" class="modal-overlay">
+        <div class="modal-content max-w-md" onclick="event.stopPropagation()">
+            <button onclick="closeAdminLoginModal()" class="absolute top-4 right-4 text-gray-400 hover:text-red-600 transition-colors z-10">
+                <i class="fas fa-times text-2xl"></i>
+            </button>
+            <div class="text-center mb-6">
+                <span class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-red-600 to-rose-600 shadow-lg mb-3">
+                    <i class="fas fa-user-shield text-white text-2xl"></i>
+                </span>
+                <h2 class="text-2xl font-bold text-red-700">Admin Login</h2>
+                <p class="text-rose-500 text-sm">Sign in to manage the system</p>
+            </div>
+            <div id="adminLoginError" class="hidden mb-4 bg-red-50 border border-red-300 text-red-700 rounded-lg px-4 py-3 shadow">
+                <div class="flex items-start">
+                    <i class="fas fa-exclamation-circle text-red-500 mt-1 mr-3"></i>
+                    <div class="flex-1">
+                        <p class="font-bold mb-1">Login Failed</p>
+                        <div id="adminLoginErrorMessage" class="text-sm">Invalid admin credentials.</div>
+                    </div>
+                    <button type="button" onclick="document.getElementById('adminLoginError').classList.add('hidden')" class="text-red-400 hover:text-red-600 ml-2">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <form id="adminLoginForm" class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-1 text-sm">Username</label>
+                    <input type="text" id="admin_username" class="w-full px-4 py-2 border border-red-200 rounded-lg focus:border-red-500 focus:ring-2 focus:ring-red-100 bg-red-50" required />
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-1 text-sm">Password</label>
+                    <input type="password" id="admin_password" class="w-full px-4 py-2 border border-red-200 rounded-lg focus:border-red-500 focus:ring-2 focus:ring-red-100 bg-red-50" required />
+                </div>
+                <button type="submit" class="w-full bg-gradient-to-r from-red-600 to-rose-600 text-white font-bold py-3 rounded-lg shadow-lg hover:from-red-700 hover:to-rose-700 transition-all">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Login
+                </button>
+            </form>
         </div>
     </div>
 
@@ -1556,6 +1611,26 @@ function event_commit_info($conn, $event_id, $user_id = null) {
         }
 
         // Handle Register Form Submission
+        // Handle Admin Login (AJAX)
+        document.getElementById('adminLoginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('username', document.getElementById('admin_username').value);
+            formData.append('password', document.getElementById('admin_password').value);
+            try {
+                const res = await fetch('admin/login_api.php', { method: 'POST', body: formData });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    window.location.href = 'admin/dashboard.php';
+                } else {
+                    document.getElementById('adminLoginErrorMessage').textContent = data.message || 'Invalid admin credentials.';
+                    document.getElementById('adminLoginError').classList.remove('hidden');
+                }
+            } catch (err) {
+                document.getElementById('adminLoginErrorMessage').textContent = 'Login error. Please try again.';
+                document.getElementById('adminLoginError').classList.remove('hidden');
+            }
+        });
         document.getElementById('registerForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
