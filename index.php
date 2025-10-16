@@ -1050,6 +1050,14 @@ function event_commit_info($conn, $event_id, $user_id = null) {
         function closeRegisterModal() {
             document.getElementById('registerModal').classList.remove('show');
             document.body.style.overflow = 'auto';
+            // Clean up - hide any messages when closing modal
+            if (typeof hideRegisterError === 'function') {
+                hideRegisterError();
+            }
+            const successMsg = document.getElementById('registerSuccess');
+            if (successMsg) {
+                successMsg.classList.add('hidden');
+            }
         }
 
         function switchToLogin() {
@@ -1170,6 +1178,19 @@ function event_commit_info($conn, $event_id, $user_id = null) {
             <div id="registerSuccess" class="hidden mb-4 bg-blue-50 border border-blue-300 text-blue-700 font-semibold rounded-lg px-4 py-3 shadow">
                 <p class="font-bold mb-1">Registration Submitted!</p>
                 <p class="text-sm">Your account is awaiting admin approval. You'll be able to login once verified.</p>
+            </div>
+
+            <div id="registerError" class="hidden mb-4 bg-red-50 border border-red-300 text-red-700 rounded-lg px-4 py-3 shadow">
+                <div class="flex items-start">
+                    <i class="fas fa-exclamation-circle text-red-500 mt-1 mr-3"></i>
+                    <div class="flex-1">
+                        <p class="font-bold mb-1">Registration Failed</p>
+                        <div id="registerErrorMessage" class="text-sm"></div>
+                    </div>
+                    <button type="button" onclick="document.getElementById('registerError').classList.add('hidden')" class="text-red-400 hover:text-red-600 ml-2">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
             </div>
 
             <form id="registerForm" class="space-y-4">
@@ -1424,26 +1445,55 @@ function event_commit_info($conn, $event_id, $user_id = null) {
             }
         });
 
+        // Helper function to show error in form
+        function showRegisterError(message) {
+            const errorDiv = document.getElementById('registerError');
+            const errorMessage = document.getElementById('registerErrorMessage');
+            
+            // Hide success message if visible
+            document.getElementById('registerSuccess').classList.add('hidden');
+            
+            // Format message with line breaks
+            if (typeof message === 'string') {
+                errorMessage.innerHTML = message.replace(/\n/g, '<br>');
+            } else {
+                errorMessage.textContent = message;
+            }
+            
+            // Show error
+            errorDiv.classList.remove('hidden');
+            
+            // Scroll to top of modal to see error
+            document.querySelector('#registerModal .modal-content').scrollTop = 0;
+        }
+        
+        function hideRegisterError() {
+            document.getElementById('registerError').classList.add('hidden');
+        }
+
         // Handle Register Form Submission
         document.getElementById('registerForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+            
+            // Hide any previous errors
+            hideRegisterError();
             
             const password = document.getElementById('reg_password').value;
             const confirm = document.getElementById('reg_confirm_password').value;
             
             // Validate password
             if (password.length < 8) {
-                alert('Password must be at least 8 characters long.');
+                showRegisterError('Password must be at least 8 characters long.');
                 return false;
             }
             
             if (!/[A-Z]/.test(password) || !/[0-9]/.test(password)) {
-                alert('Password must contain at least one uppercase letter and one number.');
+                showRegisterError('Password must contain at least one uppercase letter and one number.');
                 return false;
             }
             
             if (password !== confirm) {
-                alert('Passwords do not match.');
+                showRegisterError('Passwords do not match.');
                 return false;
             }
             
@@ -1466,6 +1516,8 @@ function event_commit_info($conn, $event_id, $user_id = null) {
                     const data = await response.json();
                     
                     if (data.status === 'success') {
+                        // Hide any errors
+                        hideRegisterError();
                         // Show success message
                         document.getElementById('registerSuccess').classList.remove('hidden');
                         this.reset();
@@ -1475,8 +1527,8 @@ function event_commit_info($conn, $event_id, $user_id = null) {
                             window.location.href = 'index.php';
                         }, 3000);
                     } else {
-                        // Show specific error message from server
-                        alert('Registration failed:\n\n' + data.message);
+                        // Show specific error message from server in the form
+                        showRegisterError(data.message);
                     }
                 } else {
                     // Fallback: parse as text
@@ -1484,6 +1536,7 @@ function event_commit_info($conn, $event_id, $user_id = null) {
                     console.log('Registration response:', text);
                     
                     if (text.includes('success') || text.includes('Registration Submitted') || text.includes('awaiting admin approval')) {
+                        hideRegisterError();
                         document.getElementById('registerSuccess').classList.remove('hidden');
                         this.reset();
                         document.querySelector('#registerModal .modal-content').scrollTop = 0;
@@ -1492,12 +1545,16 @@ function event_commit_info($conn, $event_id, $user_id = null) {
                             window.location.href = 'index.php';
                         }, 3000);
                     } else {
-                        alert('Registration failed. Please check the form and try again.');
+                        // Parse HTML to extract error if possible
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(text, 'text/html');
+                        const errorText = doc.body.textContent || 'Registration failed. Please check the form and try again.';
+                        showRegisterError(errorText.substring(0, 500)); // Limit length
                     }
                 }
             } catch (error) {
                 console.error('Registration error:', error);
-                alert('Registration failed. Please try again.');
+                showRegisterError('An error occurred during registration. Please try again.');
             }
         });
     </script>
