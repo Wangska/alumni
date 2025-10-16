@@ -310,7 +310,7 @@ function event_commit_info($conn, $event_id, $user_id = null) {
         <div class="container mx-auto px-6">
             <div class="flex justify-between items-center">
                 <a href="./" class="flex items-center gap-3 text-white hover:opacity-90">
-                    <img src="admin/assets/img/scclogo.png" alt="SCC Logo" class="h-10 w-10 rounded-full object-cover" onerror="this.style.display='none'">
+                    <img src="admin/assets/img/scclogo.png" alt="SCC Logo" class="h-10 md:h-12 w-auto" style="max-width: 280px;" onerror="this.style.display='none'">
                     <span class="sr-only">Home</span>
                 </a>
 
