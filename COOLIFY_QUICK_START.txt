@@ -1,0 +1,106 @@
+================================================================================
+                    COOLIFY DEPLOYMENT - QUICK START
+                       Alumni Management System
+================================================================================
+
+📋 ENVIRONMENT VARIABLES TO SET IN COOLIFY
+-------------------------------------------
+
+DB_CONNECTION=mysql
+DB_HOST=sks4w8c8wkkokoko4g4wckws
+DB_PORT=3306
+DB_DATABASE=default
+DB_USERNAME=root
+DB_PASSWORD=OvVXddMQi1EvINhiAQxE8n8NjDardQefuj2LaPmVFx1KM2wURYLRjaeRUitMY1C3
+
+
+🔧 HOW TO SET ENVIRONMENT VARIABLES IN COOLIFY
+-----------------------------------------------
+
+1. Go to your project in Coolify
+2. Click on "Environment Variables" or "Settings"
+3. Add each variable one by one:
+   - Name: DB_HOST
+   - Value: sks4w8c8wkkokoko4g4wckws
+   (Repeat for all variables above)
+4. Save and redeploy
+
+
+📊 DATABASE IMPORT
+------------------
+
+Option 1 - MySQL Command Line:
+mysql -h sks4w8c8wkkokoko4g4wckws \
+      -u root \
+      -p"OvVXddMQi1EvINhiAQxE8n8NjDardQefuj2LaPmVFx1KM2wURYLRjaeRUitMY1C3" \
+      -P 3306 \
+      default < database/alumni_db.sql
+
+Option 2 - phpMyAdmin:
+- Access phpMyAdmin in Coolify
+- Select database "default"
+- Go to Import tab
+- Upload: database/alumni_db.sql
+- Click Go
+
+
+✅ TEST YOUR DEPLOYMENT
+------------------------
+
+1. Test Database Connection:
+   https://your-app-url/admin/test_connection.php
+
+2. Access Admin Panel:
+   https://your-app-url/admin/
+   Username: admin
+   Password: admin123
+
+3. Access Public Interface:
+   https://your-app-url/
+
+
+🔐 SECURITY CHECKLIST
+---------------------
+
+After deployment:
+[ ] Change admin password immediately
+[ ] Update DB_PASSWORD to a strong password
+[ ] Set file upload permissions (755 for uploads folder)
+[ ] Enable HTTPS in Coolify
+[ ] Consider implementing password_hash() instead of MD5
+
+
+📁 IMPORTANT DIRECTORIES
+------------------------
+
+Make sure these are writable:
+- admin/assets/uploads/
+- admin/assets/img/
+
+
+🆘 TROUBLESHOOTING
+------------------
+
+Connection Failed?
+→ Check environment variables are set correctly
+→ Visit /admin/test_connection.php to see details
+
+Database Not Found?
+→ Import database/alumni_db.sql
+→ Verify DB_DATABASE matches your database name
+
+Can't Login?
+→ Clear browser cache
+→ Check database was imported
+→ Verify admin credentials in database
+
+
+📖 FULL DOCUMENTATION
+----------------------
+
+For detailed deployment instructions, see:
+→ COOLIFY_DEPLOYMENT.md
+
+
+================================================================================
+
