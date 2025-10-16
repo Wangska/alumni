@@ -29,12 +29,12 @@ if (!is_dir($uploadDir)) {
     echo "<p style='color: green;'>✓ Gallery directory exists: $uploadDir</p>";
 }
 
-// Set permissions
+// Set permissions (only if possible)
 if (is_dir($uploadDir)) {
-    if (chmod($uploadDir, 0777)) {
+    if (@chmod($uploadDir, 0777)) {
         echo "<p style='color: green;'>✓ Set permissions on gallery directory</p>";
     } else {
-        echo "<p style='color: red;'>✗ Failed to set permissions on gallery directory</p>";
+        echo "<p style='color: orange;'>⚠ Could not change permissions (this is normal in some hosting environments)</p>";
     }
     
     // Check if writable
