@@ -312,9 +312,6 @@ function event_commit_info($conn, $event_id, $user_id = null) {
                         <i class="fas fa-images mr-2"></i>Gallery
                     </a>
                     <div id="auth-links" class="flex items-center space-x-6">
-                        <button onclick="openAdminLoginModal()" class="nav-link text-white hover:text-red-300 px-4 py-2 rounded-lg flex items-center">
-                            <i class="fas fa-user-shield mr-2"></i>Admin
-                        </button>
                     <?php if(isset($_SESSION['login_username'])): ?>
                         <a href="careers.php" class="nav-link text-white hover:text-red-300 px-4 py-2 rounded-lg transition-all duration-300 flex items-center">
                             <i class="fas fa-briefcase mr-2"></i>Jobs
@@ -779,7 +776,7 @@ function event_commit_info($conn, $event_id, $user_id = null) {
                 <?php endif; ?>
               <?php else: ?>
                 <button onclick="openLoginModal()" class="bg-gradient-to-r from-red-400 to-rose-400 text-white px-6 py-2 rounded-full font-semibold shadow hover:bg-red-600 transition">
-                  <i class="fas fa-sign-in-alt mr-2"></i>Login to Commit
+                  <i class="fas fa-sign-in-alt mr-2"></i>Login
                 </button>
               <?php endif; ?>
             </div>
@@ -1292,7 +1289,7 @@ function event_commit_info($conn, $event_id, $user_id = null) {
 
                 <div>
                     <label class="block text-gray-700 font-semibold mb-1 text-sm">Avatar (Optional)</label>
-                    <input type="file" name="img" accept="image/*" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:border-red-500 transition shadow-sm bg-white text-sm" />
+                    <input type="file" name="avatar" accept="image/*" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:border-red-500 transition shadow-sm bg-white text-sm" />
                 </div>
 
                 <button type="submit" class="w-full bg-gradient-to-r from-red-600 to-rose-600 text-white font-bold py-3 rounded-lg shadow-lg hover:from-red-700 hover:to-rose-700 transition-all duration-300">

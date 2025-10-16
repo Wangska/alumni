@@ -86,12 +86,12 @@ Class Action {
 		// Destroy session
 		session_destroy();
 		
-		// Redirect
-		if (!headers_sent()) {
-			header("location:login.php");
+        // Redirect to landing page
+        if (!headers_sent()) {
+            header("location:../index.php");
 			exit();
 		} else {
-			echo '<script>window.location.href="login.php";</script>';
+            echo '<script>window.location.href="../index.php";</script>';
 			exit();
 		}
 	}
