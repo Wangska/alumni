@@ -309,8 +309,9 @@ function event_commit_info($conn, $event_id, $user_id = null) {
     <header id="mainNav" class="fixed top-0 w-full z-40 py-4 transition-all duration-300 glass-dark shadow-lg backdrop-blur-lg">
         <div class="container mx-auto px-6">
             <div class="flex justify-between items-center">
-                <a href="./" class="text-2xl font-bold text-white hover:text-red-300 transition-colors duration-300">
-                    Alumni Nexus
+                <a href="./" class="flex items-center gap-3 text-white hover:opacity-90">
+                    <img src="admin/assets/img/scclogo.png" alt="SCC Logo" class="h-10 w-10 rounded-full object-cover" onerror="this.style.display='none'">
+                    <span class="sr-only">Home</span>
                 </a>
 
                 <button id="mobile-menu-btn" class="md:hidden text-white p-2 rounded-lg hover:bg-white/10 transition-colors">
@@ -399,20 +400,14 @@ function event_commit_info($conn, $event_id, $user_id = null) {
         <div class="absolute bottom-1/4 left-1/3 w-80 h-80 bg-red-800/10 rounded-full blur-3xl floating-element"></div>
         <div class="container mx-auto px-6 text-center relative z-20">
             <div class="max-w-4xl mx-auto">
+                <img src="admin/assets/img/scc.png" alt="St. Cecilia's College" class="mx-auto mb-6 h-12 opacity-90" onerror="this.style.display='none'">
                 <h1 class="text-5xl md:text-7xl font-bold text-white mb-6 animate-fade-in italic">
                     Welcome Home, St. Cecilia's Alumni!
                 </h1>
                 <p class="text-xl md:text-2xl text-red-100 mb-8 animate-fade-in">
                     Reconnect, Remember, and Relive Your College Moments.
                 </p>
-                <div class="search-container max-w-md mx-auto mb-8 p-2 animate-fade-in">
-                    <div class="flex items-center">
-                        <input type="text" placeholder="Search alumni, jobs, events..." class="flex-1 bg-transparent px-4 py-3 outline-none text-gray-700">
-                        <button class="bg-gradient-to-r from-red-600 to-rose-600 text-white p-3 rounded-full hover:shadow-lg transition-all">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                </div>
+                
                 <div class="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in">
                     <button onclick="openRegisterModal()" class="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white px-8 py-4 rounded-full text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-2xl hover:shadow-red-500/25">
                         <i class="fas fa-user-plus mr-2"></i>Join Now
@@ -435,7 +430,7 @@ function event_commit_info($conn, $event_id, $user_id = null) {
         <div class="container mx-auto px-6 max-w-5xl">
             <div class="text-center mb-10">
                 <h2 class="text-4xl font-bold gradient-text mb-3">About the Association</h2>
-                <p class="text-gray-600 text-lg">The St. Cecilia’s College Alumni Association aims to strengthen bonds among graduates, promote lifelong learning, and support future Cecilians.</p>
+                <p class="text-gray-600 text-lg">The St. Cecilia's College Alumni Association aims to strengthen bonds among graduates, promote lifelong learning, and support future Cecilians.</p>
             </div>
         </div>
     </section>
@@ -534,7 +529,7 @@ function event_commit_info($conn, $event_id, $user_id = null) {
             <div class="grid md:grid-cols-3 gap-6">
                 <?php if(!empty($testimonials)): foreach($testimonials as $t): ?>
                 <div class="bg-white p-6 rounded-xl shadow">
-                    <p class="text-gray-700 italic mb-3">“<?php echo nl2br(htmlspecialchars($t['quote'])); ?>”</p>
+                    <p class="text-gray-700 italic mb-3">"<?php echo nl2br(htmlspecialchars($t['quote'])); ?>"</p>
                     <p class="text-gray-600 text-sm">— <?php echo htmlspecialchars($t['name'] ?: 'Alumnus'); ?></p>
                 </div>
                 <?php endforeach; else: ?>
@@ -590,33 +585,40 @@ function event_commit_info($conn, $event_id, $user_id = null) {
         </div>
     </div>
 
+    <!-- Features Section -->
     <section class="py-20 relative">
         <div class="container mx-auto px-6">
             <div class="text-center mb-16">
                 <h2 class="text-4xl font-bold gradient-text mb-4">Discover Amazing Features</h2>
                 <p class="text-gray-600 text-lg max-w-2xl mx-auto">Connect, grow, and succeed with our comprehensive alumni platform designed for modern professionals</p>
             </div>
-            <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                <div class="feature-card rounded-2xl p-8 text-center hover-lift bg-white shadow-lg">
-                    <div class="feature-icon w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 bg-gradient-to-r from-red-500 to-rose-500 text-white shadow">
-                        <i class="fas fa-network-wired text-2xl"></i>
+            <div class="grid lg:grid-cols-3 gap-10 max-w-6xl mx-auto">
+                <div class="feature-card rounded-2xl p-8 hover-lift shadow bg-white">
+                    <div class="flex items-center gap-4 mb-4">
+                        <span class="feature-icon w-16 h-16 rounded-full flex items-center justify-center bg-gradient-to-r from-red-500 to-rose-500 text-white shadow">
+                            <i class="fas fa-user-friends text-2xl"></i>
+                        </span>
+                        <h3 class="text-xl font-bold text-gray-800">Community</h3>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-4">Global Network</h3>
-                    <p class="text-gray-600">Connect with alumni from around the world and expand your professional network</p>
+                    <p class="text-gray-600">Create and join groups, message members, and collaborate with peers.</p>
                 </div>
-                <div class="feature-card rounded-2xl p-8 text-center hover-lift bg-white shadow-lg">
-                    <div class="feature-icon w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 bg-gradient-to-r from-red-500 to-rose-500 text-white shadow">
-                        <i class="fas fa-rocket text-2xl"></i>
+                <div class="feature-card rounded-2xl p-8 hover-lift shadow bg-white">
+                    <div class="flex items-center gap-4 mb-4">
+                        <span class="feature-icon w-16 h-16 rounded-full flex items-center justify-center bg-gradient-to-r from-red-500 to-rose-500 text-white shadow">
+                            <i class="fas fa-briefcase text-2xl"></i>
+                        </span>
+                        <h3 class="text-xl font-bold text-gray-800">Careers</h3>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-4">Career Growth</h3>
-                    <p class="text-gray-600">Access exclusive job opportunities and career advancement resources</p>
+                    <p class="text-gray-600">Browse curated opportunities and tap into the alumni job market.</p>
                 </div>
-                <div class="feature-card rounded-2xl p-8 text-center hover-lift bg-white shadow-lg">
-                    <div class="feature-icon w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 bg-gradient-to-r from-red-500 to-rose-500 text-white shadow">
-                        <i class="fas fa-graduation-cap text-2xl"></i>
+                <div class="feature-card rounded-2xl p-8 hover-lift shadow bg-white">
+                    <div class="flex items-center gap-4 mb-4">
+                        <span class="feature-icon w-16 h-16 rounded-full flex items-center justify-center bg-gradient-to-r from-red-500 to-rose-500 text-white shadow">
+                            <i class="fas fa-hand-holding-heart text-2xl"></i>
+                        </span>
+                        <h3 class="text-xl font-bold text-gray-800">Give Back</h3>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-4">Lifelong Learning</h3>
-                    <p class="text-gray-600">Continuous education programs and workshops for skill development</p>
+                    <p class="text-gray-600">Support scholarships, volunteer, and help the next generation of Cecilians.</p>
                 </div>
             </div>
         </div>
@@ -653,30 +655,33 @@ function event_commit_info($conn, $event_id, $user_id = null) {
                 <h2 class="text-4xl font-bold gradient-text mb-4">Discover Amazing Features</h2>
                 <p class="text-gray-600 text-lg max-w-2xl mx-auto">Connect, grow, and succeed with our comprehensive alumni platform designed for modern professionals</p>
             </div>
-            
-            <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                <div class="feature-card rounded-2xl p-8 text-center hover-lift">
-                    <div class="feature-icon w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 text-white">
-                        <i class="fas fa-network-wired text-2xl"></i>
+            <div class="grid lg:grid-cols-3 gap-10 max-w-6xl mx-auto">
+                <div class="feature-card rounded-2xl p-8 hover-lift shadow bg-white">
+                    <div class="flex items-center gap-4 mb-4">
+                        <span class="feature-icon w-16 h-16 rounded-full flex items-center justify-center bg-gradient-to-r from-red-500 to-rose-500 text-white shadow">
+                            <i class="fas fa-user-friends text-2xl"></i>
+                        </span>
+                        <h3 class="text-xl font-bold text-gray-800">Community</h3>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-4">Global Network</h3>
-                    <p class="text-gray-600">Connect with alumni from around the world and expand your professional network</p>
+                    <p class="text-gray-600">Create and join groups, message members, and collaborate with peers.</p>
                 </div>
-                
-                <div class="feature-card rounded-2xl p-8 text-center hover-lift">
-                    <div class="feature-icon w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 text-white">
-                        <i class="fas fa-rocket text-2xl"></i>
+                <div class="feature-card rounded-2xl p-8 hover-lift shadow bg-white">
+                    <div class="flex items-center gap-4 mb-4">
+                        <span class="feature-icon w-16 h-16 rounded-full flex items-center justify-center bg-gradient-to-r from-red-500 to-rose-500 text-white shadow">
+                            <i class="fas fa-briefcase text-2xl"></i>
+                        </span>
+                        <h3 class="text-xl font-bold text-gray-800">Careers</h3>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-4">Career Growth</h3>
-                    <p class="text-gray-600">Access exclusive job opportunities and career advancement resources</p>
+                    <p class="text-gray-600">Browse curated opportunities and tap into the alumni job market.</p>
                 </div>
-                
-                <div class="feature-card rounded-2xl p-8 text-center hover-lift">
-                    <div class="feature-icon w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 text-white">
-                        <i class="fas fa-graduation-cap text-2xl"></i>
+                <div class="feature-card rounded-2xl p-8 hover-lift shadow bg-white">
+                    <div class="flex items-center gap-4 mb-4">
+                        <span class="feature-icon w-16 h-16 rounded-full flex items-center justify-center bg-gradient-to-r from-red-500 to-rose-500 text-white shadow">
+                            <i class="fas fa-hand-holding-heart text-2xl"></i>
+                        </span>
+                        <h3 class="text-xl font-bold text-gray-800">Give Back</h3>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-4">Lifelong Learning</h3>
-                    <p class="text-gray-600">Continuous education programs and workshops for skill development</p>
+                    <p class="text-gray-600">Support scholarships, volunteer, and help the next generation of Cecilians.</p>
                 </div>
             </div>
         </div>
