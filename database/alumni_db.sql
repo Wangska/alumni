@@ -31,22 +31,198 @@ USE `alumni_db`;
 -- Table structure for table `alumnus_bio`
 --
 
+-- Alumni Management System SQL (phpMyAdmin friendly)
+-- Safe to import anywhere; creates DB if needed and seeds essentials
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET time_zone = "+00:00";
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+-- Create database if it doesn't exist and use it
+CREATE DATABASE IF NOT EXISTS `alumni_db` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `alumni_db`;
+
+-- --------------------------------------------------------
+-- Table: courses
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `courses`;
+CREATE TABLE `courses` (
+  `id` int(30) NOT NULL AUTO_INCREMENT,
+  `course` varchar(200) NOT NULL,
+  `about` text DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+INSERT INTO `courses` (`course`, `about`) VALUES
+('BS Information Technology', 'Information Technology'),
+('BS Education', 'Education'),
+('BS Criminology', 'Criminology');
+
+-- --------------------------------------------------------
+-- Table: alumnus_bio (matches registration form)
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `alumnus_bio`;
 CREATE TABLE `alumnus_bio` (
-  `id` int(30) NOT NULL,
+  `id` int(30) NOT NULL AUTO_INCREMENT,
   `firstname` varchar(200) NOT NULL,
-  `middlename` varchar(200) NOT NULL,
+  `middlename` varchar(200) DEFAULT '',
   `lastname` varchar(200) NOT NULL,
   `gender` varchar(10) NOT NULL,
   `batch` year(4) NOT NULL,
   `course_id` int(30) NOT NULL,
   `email` varchar(250) NOT NULL,
   `contact` varchar(20) NOT NULL DEFAULT '',
-  `address` text NOT NULL DEFAULT '',
-  `connected_to` text NOT NULL,
-  `avatar` text NOT NULL,
+  `address` varchar(255) NOT NULL DEFAULT '',
+  `connected_to` text DEFAULT NULL,
+  `avatar` text DEFAULT NULL,
   `status` tinyint(1) NOT NULL DEFAULT 0 COMMENT '0= Unverified, 1= Verified',
-  `date_created` datetime DEFAULT current_timestamp()
+  `date_created` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_email` (`email`),
+  KEY `idx_course_id` (`course_id`),
+  CONSTRAINT `fk_alumni_course` FOREIGN KEY (`course_id`) REFERENCES `courses` (`id`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+-- Table: users
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `users`;
+CREATE TABLE `users` (
+  `id` int(30) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `username` varchar(200) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `type` tinyint(1) NOT NULL DEFAULT 3 COMMENT '1=Admin,2=Officer,3=Alumnus',
+  `auto_generated_pass` varchar(255) DEFAULT '',
+  `alumnus_id` int(30) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_username` (`username`),
+  KEY `idx_alumnus_id` (`alumnus_id`),
+  CONSTRAINT `fk_user_alumnus` FOREIGN KEY (`alumnus_id`) REFERENCES `alumnus_bio` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Seed admin user (password: admin123 -> MD5 for legacy compatibility)
+INSERT INTO `users` (`name`, `username`, `password`, `type`, `auto_generated_pass`, `alumnus_id`)
+VALUES ('Admin', 'admin', '0192023a7bbd73250516f069df18b500', 1, '', NULL);
+
+-- --------------------------------------------------------
+-- Table: announcements
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `announcements`;
+CREATE TABLE `announcements` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `content` text NOT NULL,
+  `date_posted` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+-- Table: events
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `events`;
+CREATE TABLE `events` (
+  `id` int(30) NOT NULL AUTO_INCREMENT,
+  `title` varchar(250) NOT NULL,
+  `content` text NOT NULL,
+  `schedule` datetime NOT NULL,
+  `banner` text DEFAULT NULL,
+  `date_created` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+DROP TABLE IF EXISTS `event_commits`;
+CREATE TABLE `event_commits` (
+  `id` int(30) NOT NULL AUTO_INCREMENT,
+  `event_id` int(30) NOT NULL,
+  `user_id` int(30) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_event` (`event_id`),
+  KEY `idx_user` (`user_id`),
+  CONSTRAINT `fk_commit_event` FOREIGN KEY (`event_id`) REFERENCES `events` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_commit_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+-- Tables: forum_topics, forum_comments
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `forum_topics`;
+CREATE TABLE `forum_topics` (
+  `id` int(30) NOT NULL AUTO_INCREMENT,
+  `title` varchar(250) NOT NULL,
+  `description` text NOT NULL,
+  `user_id` int(30) NOT NULL,
+  `date_created` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_ft_user` (`user_id`),
+  CONSTRAINT `fk_topic_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+DROP TABLE IF EXISTS `forum_comments`;
+CREATE TABLE `forum_comments` (
+  `id` int(30) NOT NULL AUTO_INCREMENT,
+  `topic_id` int(30) NOT NULL,
+  `comment` text NOT NULL,
+  `user_id` int(30) NOT NULL,
+  `date_created` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_fc_topic` (`topic_id`),
+  KEY `idx_fc_user` (`user_id`),
+  CONSTRAINT `fk_comment_topic` FOREIGN KEY (`topic_id`) REFERENCES `forum_topics` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_comment_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+-- Table: gallery
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `gallery`;
+CREATE TABLE `gallery` (
+  `id` int(30) NOT NULL AUTO_INCREMENT,
+  `about` text NOT NULL,
+  `created` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+-- Table: careers
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `careers`;
+CREATE TABLE `careers` (
+  `id` int(30) NOT NULL AUTO_INCREMENT,
+  `company` varchar(250) NOT NULL,
+  `location` varchar(255) NOT NULL,
+  `job_title` varchar(255) NOT NULL,
+  `description` text NOT NULL,
+  `user_id` int(30) NOT NULL,
+  `date_created` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_career_user` (`user_id`),
+  CONSTRAINT `fk_career_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+-- Table: system_settings
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `system_settings`;
+CREATE TABLE `system_settings` (
+  `id` int(30) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `email` varchar(200) NOT NULL,
+  `contact` varchar(20) NOT NULL,
+  `cover_img` text DEFAULT NULL,
+  `about_content` text DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+INSERT INTO `system_settings` (`name`, `email`, `contact`, `cover_img`, `about_content`) VALUES
+('Alumni Management System', 'admin@example.com', '0000000000', '', 'Welcome to the Alumni Management System.');
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 
 --
 -- Dumping data for table `alumnus_bio`
