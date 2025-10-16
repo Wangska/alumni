@@ -1,4 +1,8 @@
 <?php
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 // Session already started in index.php, don't start again
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -204,7 +208,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Handle errors
     if (!empty($uploadErrors)) {
         $errorMessage = implode('<br>', $uploadErrors);
-        echo "<script>window.onload = function() { showModal('$errorMessage'); setTimeout(function(){ window.location.href = 'gallery.php'; }, 5000); }</script>";
+        echo "<script>
+            window.onload = function() { 
+                showModal('$errorMessage'); 
+                setTimeout(function(){ 
+                    window.location.href = 'gallery.php'; 
+                }, 5000); 
+            }
+        </script>";
         exit;
     }
 
@@ -239,7 +250,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $message = "Gallery added successfully!";
     }
-    echo "<script>window.onload = function() { showModal('$message'); setTimeout(function(){ window.location.href = 'gallery.php'; }, 2000); }</script>";
+    echo "<script>
+        window.onload = function() { 
+            showModal('$message'); 
+            setTimeout(function(){ 
+                window.location.href = 'gallery.php'; 
+            }, 2000); 
+        }
+    </script>";
+    echo "<noscript><meta http-equiv='refresh' content='3;url=gallery.php'></noscript>";
 }
 
 // Handle delete
@@ -249,11 +268,19 @@ if (isset($_GET['delete']) && $_GET['delete']) {
     $stmt->bind_param("i", $id);
     $stmt->execute();
     // Remove image files
-    $files = glob("$fpath/{$id}_*");
+    $files = glob($uploadDirFs . "/{$id}_*");
     foreach ($files as $file) {
         if (is_file($file)) unlink($file);
     }
-    echo "<script>window.onload = function() { showModal('Gallery deleted successfully!'); setTimeout(function(){ window.location.href = 'gallery.php'; }, 2000); }</script>";
+    echo "<script>
+        window.onload = function() { 
+            showModal('Gallery deleted successfully!'); 
+            setTimeout(function(){ 
+                window.location.href = 'gallery.php'; 
+            }, 2000); 
+        }
+    </script>";
+    echo "<noscript><meta http-equiv='refresh' content='3;url=gallery.php'></noscript>";
 }
 
 // For edit
