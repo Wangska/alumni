@@ -5,7 +5,118 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 include 'db_connect.php';
 
-$fpath = 'assets/uploads/gallery';
+// Helper functions for image processing and validation
+function getUploadErrorMessage($errorCode) {
+    switch ($errorCode) {
+        case UPLOAD_ERR_INI_SIZE:
+        case UPLOAD_ERR_FORM_SIZE:
+            return "File too large.";
+        case UPLOAD_ERR_PARTIAL:
+            return "File upload was incomplete.";
+        case UPLOAD_ERR_NO_FILE:
+            return "No file was uploaded.";
+        case UPLOAD_ERR_NO_TMP_DIR:
+            return "Missing temporary folder.";
+        case UPLOAD_ERR_CANT_WRITE:
+            return "Failed to write file to disk.";
+        case UPLOAD_ERR_EXTENSION:
+            return "File upload stopped by extension.";
+        default:
+            return "Unknown upload error.";
+    }
+}
+
+function optimizeImage($sourcePath, $targetPath) {
+    if (!function_exists('imagecreatefromjpeg')) {
+        return false; // GD extension not available
+    }
+    
+    $imageInfo = getimagesize($sourcePath);
+    if (!$imageInfo) {
+        return false;
+    }
+    
+    $width = $imageInfo[0];
+    $height = $imageInfo[1];
+    $mimeType = $imageInfo['mime'];
+    
+    // Create image resource based on type
+    switch ($mimeType) {
+        case 'image/jpeg':
+            $sourceImage = imagecreatefromjpeg($sourcePath);
+            break;
+        case 'image/png':
+            $sourceImage = imagecreatefrompng($sourcePath);
+            break;
+        case 'image/gif':
+            $sourceImage = imagecreatefromgif($sourcePath);
+            break;
+        case 'image/webp':
+            $sourceImage = imagecreatefromwebp($sourcePath);
+            break;
+        default:
+            return false;
+    }
+    
+    if (!$sourceImage) {
+        return false;
+    }
+    
+    // Calculate new dimensions (max 1920x1080, maintain aspect ratio)
+    $maxWidth = 1920;
+    $maxHeight = 1080;
+    
+    if ($width <= $maxWidth && $height <= $maxHeight) {
+        // Image is already small enough, just copy
+        $newWidth = $width;
+        $newHeight = $height;
+    } else {
+        $ratio = min($maxWidth / $width, $maxHeight / $height);
+        $newWidth = intval($width * $ratio);
+        $newHeight = intval($height * $ratio);
+    }
+    
+    // Create new image
+    $newImage = imagecreatetruecolor($newWidth, $newHeight);
+    
+    // Preserve transparency for PNG and GIF
+    if ($mimeType === 'image/png' || $mimeType === 'image/gif') {
+        imagealphablending($newImage, false);
+        imagesavealpha($newImage, true);
+        $transparent = imagecolorallocatealpha($newImage, 255, 255, 255, 127);
+        imagefilledrectangle($newImage, 0, 0, $newWidth, $newHeight, $transparent);
+    }
+    
+    // Resize image
+    imagecopyresampled($newImage, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+    
+    // Save optimized image
+    $result = false;
+    switch ($mimeType) {
+        case 'image/jpeg':
+            $result = imagejpeg($newImage, $targetPath, 85); // 85% quality
+            break;
+        case 'image/png':
+            $result = imagepng($newImage, $targetPath, 8); // 8 compression level
+            break;
+        case 'image/gif':
+            $result = imagegif($newImage, $targetPath);
+            break;
+        case 'image/webp':
+            $result = imagewebp($newImage, $targetPath, 85); // 85% quality
+            break;
+    }
+    
+    // Clean up memory
+    imagedestroy($sourceImage);
+    imagedestroy($newImage);
+    
+    return $result;
+}
+
+// Use filesystem-safe absolute path for saving, and URL path for displaying
+$uploadDirUrl = 'assets/uploads/gallery';
+$uploadDirFs  = __DIR__ . '/assets/uploads/gallery';
 
 // Handle form submission for insert/update
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -15,12 +126,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Validate and upload image
     $imgName = '';
+    $uploadErrors = [];
+    
     if ($imgFile && $imgFile['tmp_name']) {
-        $ext = pathinfo($imgFile['name'], PATHINFO_EXTENSION);
-        $imgName = uniqid() . '_' . time() . '.' . $ext;
-        $targetPath = $fpath . '/' . $imgName;
-        if (!is_dir($fpath)) mkdir($fpath, 0777, true);
-        move_uploaded_file($imgFile['tmp_name'], $targetPath);
+        // File validation
+        $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        $maxSize = 5 * 1024 * 1024; // 5MB
+        
+        // Check file type
+        if (!in_array($imgFile['type'], $allowedTypes)) {
+            $uploadErrors[] = "Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed.";
+        }
+        
+        // Check file size
+        if ($imgFile['size'] > $maxSize) {
+            $uploadErrors[] = "File too large. Maximum size is 5MB.";
+        }
+        
+        // Check for upload errors
+        if ($imgFile['error'] !== UPLOAD_ERR_OK) {
+            $uploadErrors[] = "Upload error: " . getUploadErrorMessage($imgFile['error']);
+        }
+        
+        // If no errors, process the image
+        if (empty($uploadErrors)) {
+            $ext = pathinfo($imgFile['name'], PATHINFO_EXTENSION);
+            $imgName = uniqid() . '_' . time() . '.' . $ext;
+            if (!is_dir($uploadDirFs)) mkdir($uploadDirFs, 0777, true);
+            $targetPath = $uploadDirFs . '/' . $imgName;
+            @chmod($uploadDirFs, 0777);
+            
+            if (move_uploaded_file($imgFile['tmp_name'], $targetPath)) {
+                // Resize and optimize image
+                $optimized = optimizeImage($targetPath, $targetPath);
+                if (!$optimized) {
+                    $uploadErrors[] = "Failed to optimize image.";
+                }
+            } else {
+                $uploadErrors[] = "Failed to save uploaded file.";
+            }
+        }
+    }
+
+    // Handle errors
+    if (!empty($uploadErrors)) {
+        $errorMessage = implode('<br>', $uploadErrors);
+        echo "<script>window.onload = function() { showModal('$errorMessage'); setTimeout(function(){ window.location.href = 'gallery.php'; }, 5000); }</script>";
+        exit;
     }
 
     if ($id) {
@@ -31,13 +183,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
         if ($imgName) {
             // Remove previous image
-            $files = glob("$fpath/{$id}_*");
+            $files = glob($uploadDirFs . "/{$id}_*");
             foreach ($files as $file) {
                 if (is_file($file)) unlink($file);
             }
             // Rename to include ID prefix
             $finalName = $id . '_' . $imgName;
-            rename($targetPath, "$fpath/$finalName");
+            rename($targetPath, $uploadDirFs . "/$finalName");
         }
         $message = "Gallery updated successfully!";
     } else {
@@ -50,7 +202,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($imgName) {
             // Rename to include ID prefix
             $finalName = $newId . '_' . $imgName;
-            rename($targetPath, "$fpath/$finalName");
+            rename($targetPath, $uploadDirFs . "/$finalName");
         }
         $message = "Gallery added successfully!";
     }
@@ -79,8 +231,8 @@ if (isset($_GET['edit']) && $_GET['edit']) {
     $res = $conn->query("SELECT * FROM gallery WHERE id = {$edit_id}");
     $edit_row = $res->fetch_assoc();
     $img = '';
-    $files = glob("$fpath/{$edit_id}_*");
-    if ($files && count($files)) $img = $files[0];
+    $files = glob($uploadDirFs . "/{$edit_id}_*");
+    if ($files && count($files)) $img = $uploadDirUrl . '/' . basename($files[0]);
 }
 ?>
 
@@ -284,7 +436,9 @@ if (isset($_GET['edit']) && $_GET['edit']) {
                             <label class="block font-semibold text-red-900 mb-1">Select Image</label>
                             <input type="file" 
                                 class="block w-full text-sm border-2 border-red-200 rounded-2xl cursor-pointer bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-100" 
-                                name="img" accept="image/*" onchange="displayImg(this)">
+                                name="img" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" 
+                                onchange="validateAndDisplayImage(this)">
+                            <div id="fileValidation" class="mt-2 text-sm hidden"></div>
                         </div>
                         <div>
                             <label class="block font-semibold text-red-900 mb-1">Preview</label>
@@ -352,9 +506,9 @@ if (isset($_GET['edit']) && $_GET['edit']) {
                                     $gallery = $conn->query("SELECT * FROM gallery ORDER BY id ASC LIMIT $limit OFFSET $offset");
                                     while ($row = $gallery->fetch_assoc()):
                                         $img = '';
-                                        $files = glob("$fpath/{$row['id']}_*");
+                                        $files = glob($uploadDirFs . "/{$row['id']}_*");
                                         if ($files && count($files)) {
-                                            $img = $files[0];
+                                            $img = $uploadDirUrl . '/' . basename($files[0]);
                                         }
                                     ?>
                                     <tr class="hover:bg-red-50/40 transition-colors">
@@ -448,6 +602,46 @@ if (isset($_GET['edit']) && $_GET['edit']) {
         function closeModal() {
             document.getElementById('successModal').classList.add('hidden');
         }
+        function validateAndDisplayImage(input) {
+            const validationDiv = document.getElementById('fileValidation');
+            const previewImg = document.getElementById('cimg');
+            
+            // Clear previous validation
+            validationDiv.classList.add('hidden');
+            validationDiv.innerHTML = '';
+            
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const maxSize = 5 * 1024 * 1024; // 5MB
+                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+                
+                // Validate file type
+                if (!allowedTypes.includes(file.type)) {
+                    validationDiv.innerHTML = '<span class="text-red-600"><i class="fas fa-exclamation-triangle mr-1"></i>Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed.</span>';
+                    validationDiv.classList.remove('hidden');
+                    return;
+                }
+                
+                // Validate file size
+                if (file.size > maxSize) {
+                    validationDiv.innerHTML = '<span class="text-red-600"><i class="fas fa-exclamation-triangle mr-1"></i>File too large. Maximum size is 5MB.</span>';
+                    validationDiv.classList.remove('hidden');
+                    return;
+                }
+                
+                // Show success message
+                validationDiv.innerHTML = '<span class="text-green-600"><i class="fas fa-check-circle mr-1"></i>File is valid and will be optimized on upload.</span>';
+                validationDiv.classList.remove('hidden');
+                
+                // Display preview
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    previewImg.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+        
         function displayImg(input) {
             if (input.files && input.files[0]) {
             var reader = new FileReader();
