@@ -1,4 +1,10 @@
 <?php
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 0); // Don't display errors directly
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/registration_errors.log');
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -14,6 +20,11 @@ function clean($value) {
 $is_ajax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
            strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
 
+// Log function for debugging
+function logError($message) {
+    error_log(date('[Y-m-d H:i:s] ') . $message . "\n", 3, __DIR__ . '/registration_errors.log');
+}
+
 // Start output buffering only for non-AJAX requests
 if (!$is_ajax) {
     ob_start();
@@ -22,6 +33,9 @@ if (!$is_ajax) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    logError("Registration attempt started");
+    logError("POST data received: " . json_encode(array_keys($_POST)));
+    
     $firstname = clean($_POST['firstname'] ?? '');
     $middlename = clean($_POST['middlename'] ?? '');
     $lastname = clean($_POST['lastname'] ?? '');
@@ -29,13 +43,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $batch = clean($_POST['batch'] ?? '');
     $course_id = intval($_POST['course_id'] ?? 0);
     $email = clean($_POST['email'] ?? '');
-  $contact = clean($_POST['contact'] ?? '');
+    $contact = clean($_POST['contact'] ?? $_POST['mobile'] ?? ''); // Handle both 'contact' and 'mobile'
+    $address = clean($_POST['address'] ?? '');
     $connected_to = clean($_POST['connected_to'] ?? '');
     $username = clean($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
     $avatar = null;
     $status = 0; // By default, unverified
+    
+    logError("Parsed data - Email: $email, Username: $username, Batch: $batch, Course ID: $course_id");
 
     // Validate required fields
     $errors = [];
@@ -61,10 +78,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $errors[] = "Batch year must be 1950 or later.";
   }
 
-    // Check if email or username already exists in alumnus_bio or users
-    $check = $conn->query("SELECT id FROM alumnus_bio WHERE email='$email' OR id IN (SELECT alumnus_id FROM users WHERE username='$username') LIMIT 1");
-    if ($check && $check->num_rows > 0) {
-        $errors[] = "Email or username already exists.";
+    // Check if email or username already exists
+    logError("Checking for duplicate email: $email");
+    $check_email = $conn->query("SELECT id FROM alumnus_bio WHERE email='$email' LIMIT 1");
+    if ($check_email && $check_email->num_rows > 0) {
+        logError("Email already exists: $email");
+        $errors[] = "Email address already exists. Please use a different email.";
+    }
+    
+    logError("Checking for duplicate username: $username");
+    $check_username = $conn->query("SELECT id FROM users WHERE username='$username' LIMIT 1");
+    if ($check_username && $check_username->num_rows > 0) {
+        logError("Username already exists: $username");
+        $errors[] = "Username already exists. Please choose a different username.";
     }
 
     // Optional: handle avatar upload
@@ -87,6 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // If errors found, show message and stop
     if ($errors) {
+        logError("Validation errors: " . json_encode($errors));
         if ($is_ajax) {
             header('Content-Type: application/json');
             echo json_encode([
@@ -114,22 +141,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-  // Ensure `contact` column exists in alumnus_bio. If not, try to add it.
+  // Ensure required columns exist in alumnus_bio
   $colCheck = $conn->query("SHOW COLUMNS FROM `alumnus_bio` LIKE 'contact'");
   if ($colCheck && $colCheck->num_rows == 0) {
-    // Attempt to add the column (best-effort). If this fails, we'll still proceed but contact will not be saved.
+    logError("Adding missing 'contact' column");
     $conn->query("ALTER TABLE `alumnus_bio` ADD COLUMN `contact` VARCHAR(20) NOT NULL DEFAULT '' AFTER `email`");
+  }
+  
+  $colCheck2 = $conn->query("SHOW COLUMNS FROM `alumnus_bio` LIKE 'address'");
+  if ($colCheck2 && $colCheck2->num_rows == 0) {
+    logError("Adding missing 'address' column");
+    $conn->query("ALTER TABLE `alumnus_bio` ADD COLUMN `address` TEXT NOT NULL DEFAULT '' AFTER `contact`");
   }
 
   // Save to alumnus_bio
     $date_created = date('Y-m-d');
-  // Insert including contact (if column exists it will be saved; if ALTER failed, this may error)
+  // Insert including contact and address
+  logError("Attempting to insert into alumnus_bio table");
   $stmt = $conn->prepare("INSERT INTO alumnus_bio 
-    (firstname, middlename, lastname, gender, batch, course_id, email, contact, connected_to, avatar, status, date_created)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    (firstname, middlename, lastname, gender, batch, course_id, email, contact, address, connected_to, avatar, status, date_created)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
   if ($stmt) {
+        logError("Statement prepared successfully");
         $stmt->bind_param(
-      "sssssissssis",
+      "ssssissssssis",
       $firstname,
       $middlename,
       $lastname,
@@ -138,13 +173,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $course_id,
       $email,
       $contact,
+      $address,
       $connected_to,
       $avatar,
       $status,
       $date_created
     );
   } else {
-    // Fallback: try inserting without contact if prepare failed (e.g., column doesn't exist and ALTER failed)
+        logError("Failed to prepare statement: " . $conn->error);
+    // Fallback: try inserting without contact/address if prepare failed
     $stmt = $conn->prepare("INSERT INTO alumnus_bio 
       (firstname, middlename, lastname, gender, batch, course_id, email, connected_to, avatar, status, date_created)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
@@ -166,8 +203,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $success = $stmt->execute();
     $alumnus_id = $conn->insert_id;
     $stmt->close();
+    
+    logError("Execute result - Success: " . ($success ? 'YES' : 'NO') . ", Alumni ID: $alumnus_id, Error: " . $conn->error);
 
     if ($success && $alumnus_id) {
+        logError("Alumni bio inserted successfully with ID: $alumnus_id");
         // Insert into users table
         $fullname = $firstname . " " . $middlename . " " . $lastname;
         $hashed = md5($password); // For demo; use password_hash in production!
@@ -177,9 +217,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt2 = $conn->prepare("INSERT INTO users (name, username, password, type, auto_generated_pass, alumnus_id) VALUES (?, ?, ?, ?, ?, ?)");
         $stmt2->bind_param("sssssi", $fullname, $username, $hashed, $type, $auto_generated_pass, $alumnus_id);
         $success2 = $stmt2->execute();
+        logError("User insert result - Success: " . ($success2 ? 'YES' : 'NO') . ", Error: " . $conn->error);
         $stmt2->close();
 
         if ($success2) {
+            logError("Registration completed successfully for user: $username");
             if ($is_ajax) {
                 header('Content-Type: application/json');
                 echo json_encode([

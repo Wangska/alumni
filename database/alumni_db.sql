@@ -40,25 +40,27 @@ CREATE TABLE `alumnus_bio` (
   `batch` year(4) NOT NULL,
   `course_id` int(30) NOT NULL,
   `email` varchar(250) NOT NULL,
+  `contact` varchar(20) NOT NULL DEFAULT '',
+  `address` text NOT NULL DEFAULT '',
   `connected_to` text NOT NULL,
   `avatar` text NOT NULL,
   `status` tinyint(1) NOT NULL DEFAULT 0 COMMENT '0= Unverified, 1= Verified',
-  `date_created` date NOT NULL DEFAULT current_timestamp()
+  `date_created` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `alumnus_bio`
 --
 
-INSERT INTO `alumnus_bio` (`id`, `firstname`, `middlename`, `lastname`, `gender`, `batch`, `course_id`, `email`, `connected_to`, `avatar`, `status`, `date_created`) VALUES
-(3, 'Jaymar', 'A.', 'Candol', 'Male', '2020', 5, 'jaymarcandol9@gmail.com', 'Saint Ce Celias College', '1756486500_ym.jpg', 1, '2025-08-30'),
-(4, 'Crystil Mae ', '', 'Padin ', 'Female', '2025', 3, 'crystilmaepadin@gmail.com', 'Saint Ce Celias College', '1756486620_513022380_1552648982772616_6591895865363501148_n.jpg', 1, '2025-08-30'),
-(5, 'Sachie', '', 'Dumangcas', 'Female', '2021', 7, 'sachiedumangcas@gmail.com', 'Saint Ce Celias College', '1756486740_525396717_1025033549526814_4739684317873942870_n.jpg', 1, '2025-08-30'),
-(6, 'Jeziel Mae', '', 'Canada', 'Male', '2023', 1, 'jezielmaecanada@gmail.com', 'Saint Ce Celias College', '1756486800_522952046_1090451893041010_3793615622569182573_n.jpg', 1, '2025-08-30'),
-(7, 'John Rey', '', 'Pangan', 'Male', '2026', 4, 'johnreypangan@gmail.com', 'Saint Ce Celias College', '1756486860_527452223_1281034280308319_1629961708546955681_n.jpg', 1, '2025-08-30'),
-(13, 'zxc', 'zxc', 'zxc', 'Female', '2009', 4, 'zxc@zxc.zxc', 'zxc', 'avatar_68cc0cf550d4d.png', 1, '2025-09-18'),
-(14, 'asd', 'asd', 'asd', 'Male', '2006', 6, 'asd@asd.asd', 'asd', 'avatar_68cc0e8141339.gif', 0, '2025-09-18'),
-(15, 'qwe', 'qwe', 'qwe', 'Female', '2004', 4, 'qwe@qwe.qwe', 'qwe', 'avatar_68cc0f4657d84.png', 0, '2025-09-18');
+INSERT INTO `alumnus_bio` (`id`, `firstname`, `middlename`, `lastname`, `gender`, `batch`, `course_id`, `email`, `contact`, `address`, `connected_to`, `avatar`, `status`, `date_created`) VALUES
+(3, 'Jaymar', 'A.', 'Candol', 'Male', '2020', 5, 'jaymarcandol9@gmail.com', '', '', 'Saint Ce Celias College', '1756486500_ym.jpg', 1, '2025-08-30 00:00:00'),
+(4, 'Crystil Mae ', '', 'Padin ', 'Female', '2025', 3, 'crystilmaepadin@gmail.com', '', '', 'Saint Ce Celias College', '1756486620_513022380_1552648982772616_6591895865363501148_n.jpg', 1, '2025-08-30 00:00:00'),
+(5, 'Sachie', '', 'Dumangcas', 'Female', '2021', 7, 'sachiedumangcas@gmail.com', '', '', 'Saint Ce Celias College', '1756486740_525396717_1025033549526814_4739684317873942870_n.jpg', 1, '2025-08-30 00:00:00'),
+(6, 'Jeziel Mae', '', 'Canada', 'Male', '2023', 1, 'jezielmaecanada@gmail.com', '', '', 'Saint Ce Celias College', '1756486800_522952046_1090451893041010_3793615622569182573_n.jpg', 1, '2025-08-30 00:00:00'),
+(7, 'John Rey', '', 'Pangan', 'Male', '2026', 4, 'johnreypangan@gmail.com', '', '', 'Saint Ce Celias College', '1756486860_527452223_1281034280308319_1629961708546955681_n.jpg', 1, '2025-08-30 00:00:00'),
+(13, 'zxc', 'zxc', 'zxc', 'Female', '2009', 4, 'zxc@zxc.zxc', '', '', 'zxc', 'avatar_68cc0cf550d4d.png', 1, '2025-09-18 00:00:00'),
+(14, 'asd', 'asd', 'asd', 'Male', '2006', 6, 'asd@asd.asd', '', '', 'asd', 'avatar_68cc0e8141339.gif', 0, '2025-09-18 00:00:00'),
+(15, 'qwe', 'qwe', 'qwe', 'Female', '2004', 4, 'qwe@qwe.qwe', '', '', 'qwe', 'avatar_68cc0f4657d84.png', 0, '2025-09-18 00:00:00');
 
 -- --------------------------------------------------------
 

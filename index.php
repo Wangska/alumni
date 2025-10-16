@@ -1458,27 +1458,42 @@ function event_commit_info($conn, $event_id, $user_id = null) {
                     body: formData
                 });
                 
-                const text = await response.text();
+                // Try to parse as JSON first
+                const contentType = response.headers.get('content-type');
                 
-                // Check if response indicates success
-                if (text.includes('success') || text.includes('Registration Submitted') || text.includes('awaiting admin approval')) {
-                    // Show success message
-                    document.getElementById('registerSuccess').classList.remove('hidden');
-                    this.reset();
+                if (contentType && contentType.includes('application/json')) {
+                    // It's JSON - parse it
+                    const data = await response.json();
                     
-                    // Scroll to top of modal to see success message
-                    document.querySelector('#registerModal .modal-content').scrollTop = 0;
-                    
-                    // Close modal and redirect after 3 seconds
-                    setTimeout(() => {
-                        closeRegisterModal();
-                        window.location.href = 'index.php';
-                    }, 3000);
-                } else if (text.includes('error') || text.includes('exists')) {
-                    // Extract error message if possible
-                    alert('Registration failed: Username or email may already exist. Please try different credentials.');
+                    if (data.status === 'success') {
+                        // Show success message
+                        document.getElementById('registerSuccess').classList.remove('hidden');
+                        this.reset();
+                        document.querySelector('#registerModal .modal-content').scrollTop = 0;
+                        setTimeout(() => {
+                            closeRegisterModal();
+                            window.location.href = 'index.php';
+                        }, 3000);
+                    } else {
+                        // Show specific error message from server
+                        alert('Registration failed:\n\n' + data.message);
+                    }
                 } else {
-                    alert('Registration failed. Please try again.');
+                    // Fallback: parse as text
+                    const text = await response.text();
+                    console.log('Registration response:', text);
+                    
+                    if (text.includes('success') || text.includes('Registration Submitted') || text.includes('awaiting admin approval')) {
+                        document.getElementById('registerSuccess').classList.remove('hidden');
+                        this.reset();
+                        document.querySelector('#registerModal .modal-content').scrollTop = 0;
+                        setTimeout(() => {
+                            closeRegisterModal();
+                            window.location.href = 'index.php';
+                        }, 3000);
+                    } else {
+                        alert('Registration failed. Please check the form and try again.');
+                    }
                 }
             } catch (error) {
                 console.error('Registration error:', error);
