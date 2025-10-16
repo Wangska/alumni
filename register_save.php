@@ -56,26 +56,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Validate required fields
     $errors = [];
-    if (!$firstname) $errors[] = "First name is required.";
-    if (!$lastname) $errors[] = "Last name is required.";
-    if (!$gender) $errors[] = "Gender is required.";
-    if (!$batch) $errors[] = "Batch is required.";
-    if (!$course_id) $errors[] = "Course is required.";
-    if (!$email) $errors[] = "Email is required.";
-  if (!$contact) $errors[] = "Contact number is required.";
-    if (!$username) $errors[] = "Username is required.";
-    if (!$password) $errors[] = "Password is required.";
-    if ($password !== $confirm_password) $errors[] = "Passwords do not match.";
+    $fieldErrors = [];
+    if (!$firstname) { $errors[] = "First name is required."; $fieldErrors['firstname'] = "First name is required."; }
+    if (!$lastname) { $errors[] = "Last name is required."; $fieldErrors['lastname'] = "Last name is required."; }
+    if (!$gender) { $errors[] = "Gender is required."; $fieldErrors['gender'] = "Gender is required."; }
+    if (!$batch) { $errors[] = "Batch is required."; $fieldErrors['batch'] = "Batch is required."; }
+    if (!$course_id) { $errors[] = "Course is required."; $fieldErrors['course_id'] = "Course is required."; }
+    if (!$email) { $errors[] = "Email is required."; $fieldErrors['email'] = "Email is required."; }
+    if (!$contact) { $errors[] = "Contact number is required."; $fieldErrors['mobile'] = "Contact number is required."; }
+    if (!$address) { $errors[] = "Address is required."; $fieldErrors['address'] = "Address is required."; }
+    if (!$username) { $errors[] = "Username is required."; $fieldErrors['username'] = "Username is required."; }
+    if (!$password) { $errors[] = "Password is required."; $fieldErrors['password'] = "Password is required."; }
+    if ($password !== $confirm_password) { $errors[] = "Passwords do not match."; $fieldErrors['confirm_password'] = "Passwords do not match."; }
   // Enforce minimum password length
-  if (strlen($password) < 8) $errors[] = "Password must be at least 8 characters long.";
+  if (strlen($password) < 8) { $errors[] = "Password must be at least 8 characters long."; $fieldErrors['password'] = "Password must be at least 8 characters long."; }
   
   // Validate batch year - should not exceed current year
   $currentYear = date('Y');
   if ($batch && intval($batch) > intval($currentYear)) {
       $errors[] = "Batch year cannot be in the future. Maximum allowed year is {$currentYear}.";
+      $fieldErrors['batch'] = "Batch year cannot be in the future. Maximum allowed year is {$currentYear}.";
   }
   if ($batch && intval($batch) < 1950) {
       $errors[] = "Batch year must be 1950 or later.";
+      $fieldErrors['batch'] = "Batch year must be 1950 or later.";
   }
 
     // Check if email or username already exists
@@ -84,6 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($check_email && $check_email->num_rows > 0) {
         logError("Email already exists: $email");
         $errors[] = "Email address already exists. Please use a different email.";
+        $fieldErrors['email'] = "Email address already exists. Please use a different email.";
     }
     
     logError("Checking for duplicate username: $username");
@@ -91,6 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($check_username && $check_username->num_rows > 0) {
         logError("Username already exists: $username");
         $errors[] = "Username already exists. Please choose a different username.";
+        $fieldErrors['username'] = "Username already exists. Please choose a different username.";
     }
 
     // Optional: handle avatar upload
@@ -118,7 +124,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Content-Type: application/json');
             echo json_encode([
                 'status' => 'error',
-                'message' => implode('<br>', $errors)
+                'message' => implode("\n", $errors),
+                'fieldErrors' => $fieldErrors
             ]);
             exit();
         } else {
