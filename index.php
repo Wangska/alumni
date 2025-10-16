@@ -299,7 +299,7 @@ function event_commit_info($conn, $event_id, $user_id = null) {
                 </a>
 
                 <button id="mobile-menu-btn" class="md:hidden text-white p-2 rounded-lg hover:bg-white/10 transition-colors">
-                    <i class="fas fa-bars text-xl"></i>
+                    <i id="menu-icon" class="fas fa-bars text-xl"></i>
                 </button>
                 <nav id="desktop-nav" class="hidden md:flex items-center space-x-8">
                     <a href="index.php?page=home" class="nav-link text-white hover:text-red-300 px-4 py-2 rounded-lg transition-all duration-300 flex items-center">
@@ -402,12 +402,12 @@ function event_commit_info($conn, $event_id, $user_id = null) {
                     </div>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in">
-                    <button class="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white px-8 py-4 rounded-full text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-2xl hover:shadow-red-500/25">
+                    <button onclick="openRegisterModal()" class="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white px-8 py-4 rounded-full text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-2xl hover:shadow-red-500/25">
                         <i class="fas fa-rocket mr-2"></i>Get Started
                     </button>
-                    <button class="glass-effect text-gray-700 px-8 py-4 rounded-full text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-xl">
+                    <a href="#about" class="glass-effect text-gray-700 px-8 py-4 rounded-full text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-xl">
                         <i class="fas fa-play mr-2"></i>Learn More
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>
@@ -1343,6 +1343,49 @@ function event_commit_info($conn, $event_id, $user_id = null) {
         // Call this when the page loads
         document.addEventListener('DOMContentLoaded', function() {
             populateBatchYears();
+            
+            // Mobile menu toggle
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const mobileNav = document.getElementById('mobile-nav');
+            const menuIcon = document.getElementById('menu-icon');
+            
+            if (mobileMenuBtn && mobileNav && menuIcon) {
+                mobileMenuBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const isHidden = mobileNav.classList.contains('hidden');
+                    
+                    if (isHidden) {
+                        // Open menu
+                        mobileNav.classList.remove('hidden');
+                        menuIcon.classList.remove('fa-bars');
+                        menuIcon.classList.add('fa-times');
+                    } else {
+                        // Close menu
+                        mobileNav.classList.add('hidden');
+                        menuIcon.classList.remove('fa-times');
+                        menuIcon.classList.add('fa-bars');
+                    }
+                });
+                
+                // Close mobile menu when clicking outside
+                document.addEventListener('click', function(event) {
+                    if (!mobileMenuBtn.contains(event.target) && !mobileNav.contains(event.target)) {
+                        mobileNav.classList.add('hidden');
+                        menuIcon.classList.remove('fa-times');
+                        menuIcon.classList.add('fa-bars');
+                    }
+                });
+                
+                // Close mobile menu when clicking on a link
+                const mobileLinks = mobileNav.querySelectorAll('a, button');
+                mobileLinks.forEach(link => {
+                    link.addEventListener('click', function() {
+                        mobileNav.classList.add('hidden');
+                        menuIcon.classList.remove('fa-times');
+                        menuIcon.classList.add('fa-bars');
+                    });
+                });
+            }
         });
 
         // Handle Login Form Submission
