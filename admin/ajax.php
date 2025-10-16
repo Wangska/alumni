@@ -72,6 +72,53 @@ if ($action == 'signup') {
     exit;
 }
 
+// Submit Success Story (logged-in alumni)
+if ($action == 'submit_story') {
+    header('Content-Type: application/json');
+    if (!isset($_SESSION['login_id']) || intval($_SESSION['login_type']) != 3) {
+        echo json_encode(['status' => 'error', 'message' => 'You must be logged in as alumni.']);
+        exit;
+    }
+    $title = trim($_POST['title'] ?? '');
+    $content = trim($_POST['content'] ?? '');
+    if ($title === '' || $content === '') {
+        echo json_encode(['status' => 'error', 'message' => 'Title and content are required.']);
+        exit;
+    }
+    $stmt = $conn->prepare("INSERT INTO success_stories (user_id, title, content, status) VALUES (?, ?, ?, 0)");
+    $uid = intval($_SESSION['login_id']);
+    $stmt->bind_param('iss', $uid, $title, $content);
+    if ($stmt->execute()) {
+        echo json_encode(['status' => 'success', 'message' => 'Story submitted for approval.']);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Database error.']);
+    }
+    exit;
+}
+
+// Submit Testimonial (logged-in alumni)
+if ($action == 'submit_testimonial') {
+    header('Content-Type: application/json');
+    if (!isset($_SESSION['login_id']) || intval($_SESSION['login_type']) != 3) {
+        echo json_encode(['status' => 'error', 'message' => 'You must be logged in as alumni.']);
+        exit;
+    }
+    $quote = trim($_POST['quote'] ?? '');
+    if ($quote === '') {
+        echo json_encode(['status' => 'error', 'message' => 'Quote is required.']);
+        exit;
+    }
+    $stmt = $conn->prepare("INSERT INTO testimonials (user_id, quote, status) VALUES (?, ?, 0)");
+    $uid = intval($_SESSION['login_id']);
+    $stmt->bind_param('is', $uid, $quote);
+    if ($stmt->execute()) {
+        echo json_encode(['status' => 'success', 'message' => 'Testimonial submitted for approval.']);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Database error.']);
+    }
+    exit;
+}
+
 
 if ($action == 'signup') {
     // Collect and validate fields

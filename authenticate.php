@@ -27,13 +27,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $is_ajax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
                strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
 
-    // First check if user exists with correct credentials (regardless of verification status)
+    // Look up user (admin or alumni)
     $check_sql = "SELECT u.*, a.firstname, a.middlename, a.lastname, a.email, a.status
                   FROM users u
                   LEFT JOIN alumnus_bio a ON u.alumnus_id = a.id
                   WHERE (u.username = ? OR a.email = ?)
                   AND u.password = ?
-                  AND u.type = 3
                   LIMIT 1";
     $check_stmt = $conn->prepare($check_sql);
     $check_stmt->bind_param("sss", $username, $username, $hashed);
@@ -42,35 +41,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($check_result && $check_result->num_rows === 1) {
         $row = $check_result->fetch_assoc();
-        
-        // Check if account is verified
-        if ($row['status'] == 0) {
-            // Account not verified yet
-            if ($is_ajax) {
-                header('Content-Type: application/json');
-                echo json_encode(['status' => 'error', 'type' => 'unverified', 'message' => 'Account not verified']);
-                exit();
-            } else {
-                header("Location: login.php?error=unverified");
-                exit();
-            }
-        }
-        
-        // Account is verified, proceed with login
+
+        // Common session data
         $_SESSION['login_id'] = $row['id'];
         $_SESSION['login_username'] = $row['username'];
         $_SESSION['login_name'] = $row['name'];
-        $_SESSION['alumnus_id'] = $row['alumnus_id'];
-        $_SESSION['fullname'] = trim($row['firstname'] . ' ' . $row['middlename'] . ' ' . $row['lastname']);
-        $_SESSION['is_verified'] = $row['status'];
-        $_SESSION['email'] = $row['email'];
-        
+        $_SESSION['login_type'] = $row['type'];
+
+        // Admin login
+        if ((int)$row['type'] === 1) {
+            if ($is_ajax) {
+                header('Content-Type: application/json');
+                echo json_encode(['status' => 'success', 'redirect' => 'admin/dashboard.php']);
+                exit();
+            } else {
+                header("Location: admin/dashboard.php");
+                exit();
+            }
+        }
+
+        // Alumni login: check verification
+        if ((int)$row['type'] === 3) {
+            if ((int)$row['status'] === 0) {
+                if ($is_ajax) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['status' => 'error', 'type' => 'unverified', 'message' => 'Account not verified']);
+                    exit();
+                } else {
+                    header("Location: login.php?error=unverified");
+                    exit();
+                }
+            }
+
+            // Alumni is verified
+            $_SESSION['alumnus_id'] = $row['alumnus_id'];
+            $_SESSION['fullname'] = trim(($row['firstname'] ?? '') . ' ' . ($row['middlename'] ?? '') . ' ' . ($row['lastname'] ?? ''));
+            $_SESSION['is_verified'] = $row['status'];
+            $_SESSION['email'] = $row['email'];
+
+            if ($is_ajax) {
+                header('Content-Type: application/json');
+                echo json_encode(['status' => 'success', 'redirect' => 'index.php']);
+                exit();
+            } else {
+                header("Location: index.php");
+                exit();
+            }
+        }
+
+        // Any other type not permitted
         if ($is_ajax) {
             header('Content-Type: application/json');
-            echo json_encode(['status' => 'success', 'message' => 'Login successful']);
+            echo json_encode(['status' => 'error', 'type' => 'invalid', 'message' => 'Invalid credentials']);
             exit();
         } else {
-            header("Location: index.php");
+            header("Location: login.php?error=1");
             exit();
         }
     } else {

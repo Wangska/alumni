@@ -50,6 +50,10 @@
             <i class="fas fa-cog"></i> 
             <span>Settings</span>
         </a>
+        <a href="moderation.php" class="nav-item nav-moderation flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:text-primary-700 hover:bg-primary-100">
+            <i class="fas fa-check-circle"></i>
+            <span>Moderation</span>
+        </a>
     </nav>
 </aside>
 

@@ -47,6 +47,21 @@ if ($res_total) {
     $total_upcoming = $row_total['total'];
 }
 
+// Fetch approved success stories
+$stories = [];
+$res_st = $conn->query("SELECT ss.*, u.name FROM success_stories ss LEFT JOIN users u ON u.id = ss.user_id WHERE ss.status = 1 ORDER BY ss.created DESC LIMIT 6");
+if ($res_st) { while($row=$res_st->fetch_assoc()) $stories[]=$row; }
+
+// Fetch approved testimonials
+$testimonials = [];
+$res_ts = $conn->query("SELECT t.*, u.name FROM testimonials t LEFT JOIN users u ON u.id=t.user_id WHERE t.status=1 ORDER BY t.created DESC LIMIT 6");
+if ($res_ts) { while($row=$res_ts->fetch_assoc()) $testimonials[]=$row; }
+
+// Fetch gallery images if any
+$gallery_items = [];
+$res_g = $conn->query("SELECT * FROM gallery ORDER BY created DESC LIMIT 8");
+if ($res_g) { while($row=$res_g->fetch_assoc()) $gallery_items[]=$row; }
+
 // If the user clicks "Commit", handle AJAX commit request
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'commit_event') {
     if (!isset($_SESSION['login_id'])) {
@@ -95,7 +110,7 @@ function event_commit_info($conn, $event_id, $user_id = null) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alumni Management System</title>
+    <title>St. Cecilia's College Alumni</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -384,14 +399,11 @@ function event_commit_info($conn, $event_id, $user_id = null) {
         <div class="absolute bottom-1/4 left-1/3 w-80 h-80 bg-red-800/10 rounded-full blur-3xl floating-element"></div>
         <div class="container mx-auto px-6 text-center relative z-20">
             <div class="max-w-4xl mx-auto">
-                <h1 class="text-5xl md:text-7xl font-bold text-white mb-6 animate-fade-in">
-                    Welcome to
-                    <span class="block gradient-text bg-gradient-to-r from-red-400 via-rose-400 to-red-400 bg-clip-text text-transparent">
-                        Alumni Nexus
-                    </span>
+                <h1 class="text-5xl md:text-7xl font-bold text-white mb-6 animate-fade-in italic">
+                    Welcome Home, St. Cecilia's Alumni!
                 </h1>
                 <p class="text-xl md:text-2xl text-red-100 mb-8 animate-fade-in">
-                    Connecting graduates, sharing opportunities, building futures together
+                    Reconnect, Remember, and Relive Your College Moments.
                 </p>
                 <div class="search-container max-w-md mx-auto mb-8 p-2 animate-fade-in">
                     <div class="flex items-center">
@@ -403,7 +415,7 @@ function event_commit_info($conn, $event_id, $user_id = null) {
                 </div>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in">
                     <button onclick="openRegisterModal()" class="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white px-8 py-4 rounded-full text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-2xl hover:shadow-red-500/25">
-                        <i class="fas fa-rocket mr-2"></i>Get Started
+                        <i class="fas fa-user-plus mr-2"></i>Join Now
                     </button>
                     <a href="#about" class="glass-effect text-gray-700 px-8 py-4 rounded-full text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-xl">
                         <i class="fas fa-play mr-2"></i>Learn More
@@ -418,7 +430,166 @@ function event_commit_info($conn, $event_id, $user_id = null) {
 
 
 
-    <!-- Features Section -->
+    <!-- About Section -->
+    <section id="about" class="py-20 bg-white">
+        <div class="container mx-auto px-6 max-w-5xl">
+            <div class="text-center mb-10">
+                <h2 class="text-4xl font-bold gradient-text mb-3">About the Association</h2>
+                <p class="text-gray-600 text-lg">The St. Cecilia’s College Alumni Association aims to strengthen bonds among graduates, promote lifelong learning, and support future Cecilians.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Alumni Spotlight / Success Stories -->
+    <section id="spotlight" class="py-20 bg-red-50/50">
+        <div class="container mx-auto px-6">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-3xl font-bold text-red-700">Alumni Spotlight</h2>
+                <?php if(isset($_SESSION['login_type']) && $_SESSION['login_type']==3): ?>
+                <button onclick="openStoryModal()" class="bg-gradient-to-r from-red-600 to-rose-600 text-white px-5 py-2 rounded-lg shadow">Share Your Story</button>
+                <?php endif; ?>
+            </div>
+            <div class="grid md:grid-cols-3 gap-6">
+                <?php if(!empty($stories)): foreach($stories as $s): ?>
+                <article class="bg-white p-6 rounded-xl shadow hover-lift">
+                    <h3 class="font-bold text-lg mb-2 text-gray-800"><?php echo htmlspecialchars($s['title']); ?></h3>
+                    <p class="text-gray-600 text-sm mb-3">by <?php echo htmlspecialchars($s['name'] ?: 'Alumnus'); ?></p>
+                    <p class="text-gray-700 line-clamp-4"><?php echo nl2br(htmlspecialchars($s['content'])); ?></p>
+                </article>
+                <?php endforeach; else: ?>
+                <div class="col-span-3 text-center text-gray-500">No stories yet. Be the first to share!</div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </section>
+
+    <!-- News & Announcements -->
+    <section id="news" class="py-20">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl font-bold text-red-700 mb-8">News & Announcements</h2>
+            <div class="grid md:grid-cols-3 gap-6">
+                <?php foreach($announcements as $a): ?>
+                <div class="announcement-card rounded-xl p-6 shadow">
+                    <p class="text-gray-700 mb-3"><?php echo nl2br(htmlspecialchars($a['content'])); ?></p>
+                    <p class="text-xs text-gray-400"><?php echo date('M d, Y', strtotime($a['date_posted'])); ?></p>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </section>
+
+    <!-- Photo Gallery Carousel (placeholders if none) -->
+    <section id="gallery" class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl font-bold text-red-700 mb-6">Photo Gallery</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <?php if(!empty($gallery_items)): foreach($gallery_items as $g): ?>
+                <div class="rounded-xl overflow-hidden shadow">
+                    <img src="admin/assets/uploads/<?php echo htmlspecialchars($g['about']); ?>" onerror="this.src='https://via.placeholder.com/400x300?text=Upload+Gallery'" class="w-full h-40 object-cover" />
+                </div>
+                <?php endforeach; else: for($i=0;$i<8;$i++): ?>
+                <div class="rounded-xl overflow-hidden shadow">
+                    <img src="https://via.placeholder.com/400x300?text=Gallery+Image" class="w-full h-40 object-cover" />
+                </div>
+                <?php endfor; endif; ?>
+            </div>
+        </div>
+    </section>
+
+    <!-- Events Section -->
+    <section id="events" class="py-20 bg-red-50/50">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl font-bold text-red-700 mb-8">Upcoming Alumni Events</h2>
+            <div class="grid md:grid-cols-2 gap-6">
+                <?php foreach($events as $e): $info = event_commit_info($conn, $e['id'], $_SESSION['login_id'] ?? null); ?>
+                <div class="bg-white rounded-xl shadow p-6">
+                    <h3 class="font-bold text-xl mb-1"><?php echo htmlspecialchars($e['title']); ?></h3>
+                    <p class="text-gray-500 text-sm mb-3"><?php echo date('M d, Y g:i A', strtotime($e['schedule'])); ?></p>
+                    <p class="text-gray-700 mb-4 line-clamp-3"><?php echo nl2br(htmlspecialchars($e['content'])); ?></p>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-500"><?php echo $info['count']; ?> going</span>
+                        <?php if(isset($_SESSION['login_id'])): ?>
+                            <button class="bg-gradient-to-r from-red-600 to-rose-600 text-white px-4 py-2 rounded" onclick="commitEvent(<?php echo $e['id']; ?>)">
+                                <?php echo $info['committed'] ? 'Committed' : 'RSVP'; ?>
+                            </button>
+                        <?php else: ?>
+                            <button onclick="openLoginModal()" class="bg-gradient-to-r from-red-600 to-rose-600 text-white px-4 py-2 rounded">Login to RSVP</button>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section id="testimonials" class="py-20">
+        <div class="container mx-auto px-6">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-3xl font-bold text-red-700">Testimonials</h2>
+                <?php if(isset($_SESSION['login_type']) && $_SESSION['login_type']==3): ?>
+                <button onclick="openTestimonialModal()" class="bg-gradient-to-r from-red-600 to-rose-600 text-white px-5 py-2 rounded-lg shadow">Add Testimonial</button>
+                <?php endif; ?>
+            </div>
+            <div class="grid md:grid-cols-3 gap-6">
+                <?php if(!empty($testimonials)): foreach($testimonials as $t): ?>
+                <div class="bg-white p-6 rounded-xl shadow">
+                    <p class="text-gray-700 italic mb-3">“<?php echo nl2br(htmlspecialchars($t['quote'])); ?>”</p>
+                    <p class="text-gray-600 text-sm">— <?php echo htmlspecialchars($t['name'] ?: 'Alumnus'); ?></p>
+                </div>
+                <?php endforeach; else: ?>
+                <div class="col-span-3 text-center text-gray-500">No testimonials yet.</div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact -->
+    <section id="contact" class="py-20 bg-white">
+        <div class="container mx-auto px-6 max-w-5xl">
+            <h2 class="text-3xl font-bold text-red-700 mb-6">Contact Us</h2>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="bg-red-50 p-6 rounded-xl">
+                    <h3 class="font-bold mb-2">Hours</h3>
+                    <p class="text-gray-700">Mon–Fri: 8:00 AM – 5:00 PM</p>
+                </div>
+                <div class="bg-red-50 p-6 rounded-xl">
+                    <h3 class="font-bold mb-2">Location</h3>
+                    <p class="text-gray-700">Cebu South National Highway, Ward II, Minglanilla, Cebu</p>
+                </div>
+                <div class="bg-red-50 p-6 rounded-xl">
+                    <h3 class="font-bold mb-2">Call Us</h3>
+                    <p class="text-gray-700">(000) 000 0000</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Story Modal -->
+    <div id="storyModal" class="modal-overlay">
+        <div class="modal-content max-w-xl" onclick="event.stopPropagation()">
+            <button onclick="closeStoryModal()" class="absolute top-4 right-4 text-gray-400 hover:text-red-600"><i class="fas fa-times text-2xl"></i></button>
+            <h3 class="text-xl font-bold mb-4">Share Your Story</h3>
+            <form id="storyForm" class="space-y-4">
+                <input type="text" name="title" class="w-full px-4 py-2 border rounded" placeholder="Title" required>
+                <textarea name="content" rows="6" class="w-full px-4 py-2 border rounded" placeholder="Your story" required></textarea>
+                <button class="bg-gradient-to-r from-red-600 to-rose-600 text-white px-6 py-2 rounded">Submit</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Testimonial Modal -->
+    <div id="testimonialModal" class="modal-overlay">
+        <div class="modal-content max-w-xl" onclick="event.stopPropagation()">
+            <button onclick="closeTestimonialModal()" class="absolute top-4 right-4 text-gray-400 hover:text-red-600"><i class="fas fa-times text-2xl"></i></button>
+            <h3 class="text-xl font-bold mb-4">Add Testimonial</h3>
+            <form id="testimonialForm" class="space-y-4">
+                <textarea name="quote" rows="4" class="w-full px-4 py-2 border rounded" placeholder="Your experience at SCC" required></textarea>
+                <button class="bg-gradient-to-r from-red-600 to-rose-600 text-white px-6 py-2 rounded">Submit</button>
+            </form>
+        </div>
+    </div>
+
     <section class="py-20 relative">
         <div class="container mx-auto px-6">
             <div class="text-center mb-16">
@@ -1491,8 +1662,12 @@ function event_commit_info($conn, $event_id, $user_id = null) {
                 const data = await response.json();
                 
                 if (data.status === 'success') {
-                    // Success - reload page
-                    window.location.href = 'index.php';
+                    // Redirect based on server suggestion (admin vs alumni)
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    } else {
+                        window.location.href = 'index.php';
+                    }
                 } else if (data.type === 'unverified') {
                     document.getElementById('unverifiedError').classList.remove('hidden');
                     document.getElementById('loginError').classList.add('hidden');
@@ -1713,6 +1888,42 @@ function event_commit_info($conn, $event_id, $user_id = null) {
                 showRegisterError('An error occurred during registration. Please try again.');
             }
         });
+
+        // Story/Testimonial modal controls
+        function openStoryModal(){ document.getElementById('storyModal').classList.add('show'); document.body.style.overflow='hidden'; }
+        function closeStoryModal(){ document.getElementById('storyModal').classList.remove('show'); document.body.style.overflow='auto'; }
+        function openTestimonialModal(){ document.getElementById('testimonialModal').classList.add('show'); document.body.style.overflow='hidden'; }
+        function closeTestimonialModal(){ document.getElementById('testimonialModal').classList.remove('show'); document.body.style.overflow='auto'; }
+
+        // Submit Story
+        const storyForm = document.getElementById('storyForm');
+        if (storyForm) {
+            storyForm.addEventListener('submit', async function(e){
+                e.preventDefault();
+                const fd = new FormData(storyForm);
+                try{
+                    const res = await fetch('admin/ajax.php?action=submit_story', { method:'POST', body: fd });
+                    const data = await res.json();
+                    if(data.status==='success'){ closeStoryModal(); alert('Story submitted for approval.'); location.reload(); }
+                    else{ alert(data.message || 'Submission failed'); }
+                }catch(err){ alert('Submission failed'); }
+            });
+        }
+
+        // Submit Testimonial
+        const testimonialForm = document.getElementById('testimonialForm');
+        if (testimonialForm) {
+            testimonialForm.addEventListener('submit', async function(e){
+                e.preventDefault();
+                const fd = new FormData(testimonialForm);
+                try{
+                    const res = await fetch('admin/ajax.php?action=submit_testimonial', { method:'POST', body: fd });
+                    const data = await res.json();
+                    if(data.status==='success'){ closeTestimonialModal(); alert('Testimonial submitted for approval.'); location.reload(); }
+                    else{ alert(data.message || 'Submission failed'); }
+                }catch(err){ alert('Submission failed'); }
+            });
+        }
     </script>
    
 </body>

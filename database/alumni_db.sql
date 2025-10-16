@@ -220,6 +220,37 @@ CREATE TABLE `system_settings` (
 INSERT INTO `system_settings` (`name`, `email`, `contact`, `cover_img`, `about_content`) VALUES
 ('Alumni Management System', 'admin@example.com', '0000000000', '', 'Welcome to the Alumni Management System.');
 
+-- --------------------------------------------------------
+-- Table: success_stories (submitted by logged-in alumni)
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `success_stories`;
+CREATE TABLE `success_stories` (
+  `id` int(30) NOT NULL AUTO_INCREMENT,
+  `user_id` int(30) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `content` text NOT NULL,
+  `created` datetime NOT NULL DEFAULT current_timestamp(),
+  `status` tinyint(1) NOT NULL DEFAULT 0 COMMENT '0=pending,1=approved',
+  PRIMARY KEY (`id`),
+  KEY `idx_ss_user` (`user_id`),
+  CONSTRAINT `fk_ss_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+-- Table: testimonials (short quotes)
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `testimonials`;
+CREATE TABLE `testimonials` (
+  `id` int(30) NOT NULL AUTO_INCREMENT,
+  `user_id` int(30) NOT NULL,
+  `quote` text NOT NULL,
+  `created` datetime NOT NULL DEFAULT current_timestamp(),
+  `status` tinyint(1) NOT NULL DEFAULT 0 COMMENT '0=pending,1=approved',
+  PRIMARY KEY (`id`),
+  KEY `idx_ts_user` (`user_id`),
+  CONSTRAINT `fk_ts_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
