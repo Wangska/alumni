@@ -152,18 +152,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($uploadErrors)) {
             $ext = pathinfo($imgFile['name'], PATHINFO_EXTENSION);
             $imgName = uniqid() . '_' . time() . '.' . $ext;
-            if (!is_dir($uploadDirFs)) mkdir($uploadDirFs, 0777, true);
-            $targetPath = $uploadDirFs . '/' . $imgName;
-            @chmod($uploadDirFs, 0777);
             
-            if (move_uploaded_file($imgFile['tmp_name'], $targetPath)) {
-                // Resize and optimize image
-                $optimized = optimizeImage($targetPath, $targetPath);
-                if (!$optimized) {
-                    $uploadErrors[] = "Failed to optimize image.";
+            // Ensure directory exists with proper permissions
+            if (!is_dir($uploadDirFs)) {
+                if (!mkdir($uploadDirFs, 0777, true)) {
+                    $uploadErrors[] = "Failed to create upload directory.";
                 }
-            } else {
-                $uploadErrors[] = "Failed to save uploaded file.";
+            }
+            
+            // Set directory permissions
+            if (is_dir($uploadDirFs)) {
+                chmod($uploadDirFs, 0777);
+            }
+            
+            $targetPath = $uploadDirFs . '/' . $imgName;
+            
+            // Check if we can write to the directory
+            if (!is_writable($uploadDirFs)) {
+                // Try to fix permissions
+                chmod($uploadDirFs, 0777);
+                if (!is_writable($uploadDirFs)) {
+                    $uploadErrors[] = "Upload directory is not writable. Please run <a href='fix_permissions.php' target='_blank'>fix_permissions.php</a> to fix this issue.";
+                }
+            }
+            
+            if (empty($uploadErrors)) {
+                if (move_uploaded_file($imgFile['tmp_name'], $targetPath)) {
+                    // Resize and optimize image
+                    $optimized = optimizeImage($targetPath, $targetPath);
+                    if (!$optimized) {
+                        $uploadErrors[] = "Failed to optimize image.";
+                    }
+                } else {
+                    // Try alternative approach - copy instead of move
+                    if (copy($imgFile['tmp_name'], $targetPath)) {
+                        unlink($imgFile['tmp_name']); // Clean up temp file
+                        $optimized = optimizeImage($targetPath, $targetPath);
+                        if (!$optimized) {
+                            $uploadErrors[] = "Failed to optimize image.";
+                        }
+                    } else {
+                        $uploadErrors[] = "Failed to save uploaded file. Please check directory permissions or run <a href='fix_permissions.php' target='_blank'>fix_permissions.php</a>.";
+                    }
+                }
             }
         }
     }
