@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $imgName = '';
     if ($imgFile && $imgFile['tmp_name']) {
         $ext = pathinfo($imgFile['name'], PATHINFO_EXTENSION);
-        $imgName = ($id ? $id : time()) . '_' . uniqid() . '.' . $ext;
+        $imgName = uniqid() . '_' . time() . '.' . $ext;
         $targetPath = $fpath . '/' . $imgName;
         if (!is_dir($fpath)) mkdir($fpath, 0777, true);
         move_uploaded_file($imgFile['tmp_name'], $targetPath);
@@ -35,7 +35,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             foreach ($files as $file) {
                 if (is_file($file)) unlink($file);
             }
-            rename($targetPath, "$fpath/{$id}_$imgName");
+            // Rename to include ID prefix
+            $finalName = $id . '_' . $imgName;
+            rename($targetPath, "$fpath/$finalName");
         }
         $message = "Gallery updated successfully!";
     } else {
@@ -46,7 +48,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
         $newId = $stmt->insert_id;
         if ($imgName) {
-            rename($targetPath, "$fpath/{$newId}_$imgName");
+            // Rename to include ID prefix
+            $finalName = $newId . '_' . $imgName;
+            rename($targetPath, "$fpath/$finalName");
         }
         $message = "Gallery added successfully!";
     }
@@ -284,10 +288,10 @@ if (isset($_GET['edit']) && $_GET['edit']) {
                         </div>
                         <div>
                             <label class="block font-semibold text-red-900 mb-1">Preview</label>
-                            <img src="<?php echo $edit && $img ? $img : '' ?>" 
+                            <img src="<?php echo ($edit && $img) ? $img : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5YTNhZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==' ?>" 
                                 id="cimg" 
                                 class="w-full h-48 object-cover rounded-2xl border-2 border-red-200 bg-red-50 shadow-sm" 
-                                alt="">
+                                alt="Image Preview">
                         </div>
                         <div>
                             <label class="block font-semibold text-red-900 mb-1">Description</label>
@@ -349,7 +353,9 @@ if (isset($_GET['edit']) && $_GET['edit']) {
                                     while ($row = $gallery->fetch_assoc()):
                                         $img = '';
                                         $files = glob("$fpath/{$row['id']}_*");
-                                        if ($files && count($files)) $img = $files[0];
+                                        if ($files && count($files)) {
+                                            $img = $files[0];
+                                        }
                                     ?>
                                     <tr class="hover:bg-red-50/40 transition-colors">
                                         <td class="px-6 py-5 text-center font-bold text-red-900"><?php echo $i++ ?></td>
@@ -490,16 +496,7 @@ if (isset($_GET['edit']) && $_GET['edit']) {
             alert(`Would open modal: ${title}`);
         }
 
-        	function displayImg(input,_this) {
-    if (input.files && input.files[0]) {
-        var reader = new FileReader();
-        reader.onload = function (e) {
-        	$('#cimg').attr('src', e.target.result);
-        }
-
-        reader.readAsDataURL(input.files[0]);
-    }
-}
+        // Remove duplicate function - using the one above
 	$('#manage-gallery').submit(function(e){
 		e.preventDefault()
 		start_load()
