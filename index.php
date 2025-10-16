@@ -1197,34 +1197,38 @@ function event_commit_info($conn, $event_id, $user_id = null) {
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-gray-700 font-semibold mb-1 text-sm">First Name <span class="text-red-500">*</span></label>
-                        <input type="text" name="firstname" required class="w-full px-4 py-2 border border-red-200 rounded-lg focus:border-red-500 focus:ring-2 focus:ring-red-100 transition shadow-sm bg-red-50" />
+                        <input type="text" name="firstname" id="reg_firstname" required class="w-full px-4 py-2 border border-red-200 rounded-lg focus:border-red-500 focus:ring-2 focus:ring-red-100 transition shadow-sm bg-red-50" />
+                        <p class="field-error hidden text-red-600 text-xs mt-1"></p>
                     </div>
                     <div>
                         <label class="block text-gray-700 font-semibold mb-1 text-sm">Middle Name</label>
-                        <input type="text" name="middlename" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:border-red-500 focus:ring-2 focus:ring-red-100 transition shadow-sm bg-red-50" />
+                        <input type="text" name="middlename" id="reg_middlename" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:border-red-500 focus:ring-2 focus:ring-red-100 transition shadow-sm bg-red-50" />
+                        <p class="field-error hidden text-red-600 text-xs mt-1"></p>
                     </div>
                     <div>
                         <label class="block text-gray-700 font-semibold mb-1 text-sm">Last Name <span class="text-red-500">*</span></label>
-                        <input type="text" name="lastname" required class="w-full px-4 py-2 border border-red-200 rounded-lg focus:border-red-500 focus:ring-2 focus:ring-red-100 transition shadow-sm bg-red-50" />
+                        <input type="text" name="lastname" id="reg_lastname" required class="w-full px-4 py-2 border border-red-200 rounded-lg focus:border-red-500 focus:ring-2 focus:ring-red-100 transition shadow-sm bg-red-50" />
+                        <p class="field-error hidden text-red-600 text-xs mt-1"></p>
                     </div>
                     <div>
                         <label class="block text-gray-700 font-semibold mb-1 text-sm">Gender <span class="text-red-500">*</span></label>
-                        <select name="gender" required class="w-full px-4 py-2 border border-red-200 rounded-lg focus:border-red-500 focus:ring-2 focus:ring-red-100 transition shadow-sm bg-white">
+                        <select name="gender" id="reg_gender" required class="w-full px-4 py-2 border border-red-200 rounded-lg focus:border-red-500 focus:ring-2 focus:ring-red-100 transition shadow-sm bg-white">
                             <option value="">Select</option>
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
                         </select>
+                        <p class="field-error hidden text-red-600 text-xs mt-1"></p>
                     </div>
                     <div>
                         <label class="block text-gray-700 font-semibold mb-1 text-sm">Batch / School Year <span class="text-red-500">*</span></label>
                         <select name="batch" id="batch_year" required class="w-full px-4 py-2 border border-red-200 rounded-lg focus:border-red-500 focus:ring-2 focus:ring-red-100 transition shadow-sm bg-white">
                             <option value="">-- Select Batch Year --</option>
                         </select>
-                        <p class="text-xs text-gray-500 mt-1">Select your graduation year</p>
+                        <p class="field-error hidden text-red-600 text-xs mt-1"></p>
                     </div>
                     <div>
                         <label class="block text-gray-700 font-semibold mb-1 text-sm">Course <span class="text-red-500">*</span></label>
-                        <select name="course_id" required class="w-full px-4 py-2 border border-red-200 rounded-lg focus:border-red-500 focus:ring-2 focus:ring-red-100 transition shadow-sm bg-white">
+                        <select name="course_id" id="reg_course_id" required class="w-full px-4 py-2 border border-red-200 rounded-lg focus:border-red-500 focus:ring-2 focus:ring-red-100 transition shadow-sm bg-white">
                             <option value="">-- Choose Course --</option>
                             <?php 
                             $courses_query = $conn->query("SELECT id, course FROM courses ORDER BY course ASC");
@@ -1233,36 +1237,42 @@ function event_commit_info($conn, $event_id, $user_id = null) {
                                 <option value="<?php echo $course['id']; ?>"><?php echo htmlspecialchars($course['course']); ?></option>
                             <?php endwhile; ?>
                         </select>
+                        <p class="field-error hidden text-red-600 text-xs mt-1"></p>
                     </div>
                     <div>
                         <label class="block text-gray-700 font-semibold mb-1 text-sm">Email <span class="text-red-500">*</span></label>
-                        <input type="email" name="email" required class="w-full px-4 py-2 border border-red-200 rounded-lg focus:border-red-500 focus:ring-2 focus:ring-red-100 transition shadow-sm bg-red-50" />
+                        <input type="email" name="email" id="reg_email" required class="w-full px-4 py-2 border border-red-200 rounded-lg focus:border-red-500 focus:ring-2 focus:ring-red-100 transition shadow-sm bg-red-50" />
+                        <p class="field-error hidden text-red-600 text-xs mt-1"></p>
                     </div>
                     <div>
                         <label class="block text-gray-700 font-semibold mb-1 text-sm">Mobile <span class="text-red-500">*</span></label>
-                        <input type="tel" name="mobile" required class="w-full px-4 py-2 border border-red-200 rounded-lg focus:border-red-500 focus:ring-2 focus:ring-red-100 transition shadow-sm bg-red-50" />
+                        <input type="tel" name="mobile" id="reg_mobile" required class="w-full px-4 py-2 border border-red-200 rounded-lg focus:border-red-500 focus:ring-2 focus:ring-red-100 transition shadow-sm bg-red-50" />
+                        <p class="field-error hidden text-red-600 text-xs mt-1"></p>
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-gray-700 font-semibold mb-1 text-sm">Address <span class="text-red-500">*</span></label>
-                    <textarea name="address" rows="2" required class="w-full px-4 py-2 border border-red-200 rounded-lg focus:border-red-500 focus:ring-2 focus:ring-red-100 transition shadow-sm bg-red-50"></textarea>
+                    <textarea name="address" id="reg_address" rows="2" required class="w-full px-4 py-2 border border-red-200 rounded-lg focus:border-red-500 focus:ring-2 focus:ring-red-100 transition shadow-sm bg-red-50"></textarea>
+                    <p class="field-error hidden text-red-600 text-xs mt-1"></p>
                 </div>
 
                 <div>
                     <label class="block text-gray-700 font-semibold mb-1 text-sm">Username <span class="text-red-500">*</span></label>
-                    <input type="text" name="username" required class="w-full px-4 py-2 border border-red-200 rounded-lg focus:border-red-500 focus:ring-2 focus:ring-red-100 transition shadow-sm bg-red-50" />
+                    <input type="text" name="username" id="reg_username" required class="w-full px-4 py-2 border border-red-200 rounded-lg focus:border-red-500 focus:ring-2 focus:ring-red-100 transition shadow-sm bg-red-50" />
+                    <p class="field-error hidden text-red-600 text-xs mt-1"></p>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-gray-700 font-semibold mb-1 text-sm">Password <span class="text-red-500">*</span></label>
                         <input type="password" name="password" id="reg_password" required class="w-full px-4 py-2 border border-red-200 rounded-lg focus:border-red-500 focus:ring-2 focus:ring-red-100 transition shadow-sm bg-red-50" />
-                        <p class="text-xs text-gray-500 mt-1">Min 8 chars, 1 uppercase, 1 number</p>
+                        <p class="field-error hidden text-red-600 text-xs mt-1"></p>
                     </div>
                     <div>
                         <label class="block text-gray-700 font-semibold mb-1 text-sm">Confirm Password <span class="text-red-500">*</span></label>
                         <input type="password" name="confirm_password" id="reg_confirm_password" required class="w-full px-4 py-2 border border-red-200 rounded-lg focus:border-red-500 focus:ring-2 focus:ring-red-100 transition shadow-sm bg-red-50" />
+                        <p class="field-error hidden text-red-600 text-xs mt-1"></p>
                     </div>
                 </div>
 
@@ -1445,30 +1455,104 @@ function event_commit_info($conn, $event_id, $user_id = null) {
             }
         });
 
+        // Helper function to clear all field errors
+        function clearFieldErrors() {
+            document.querySelectorAll('#registerForm .field-error').forEach(el => {
+                el.classList.add('hidden');
+                el.textContent = '';
+            });
+            // Reset border colors
+            document.querySelectorAll('#registerForm input, #registerForm select, #registerForm textarea').forEach(el => {
+                el.classList.remove('border-red-500');
+            });
+        }
+        
+        // Helper function to show error for specific field
+        function showFieldError(fieldName, errorMessage) {
+            const field = document.querySelector(`#registerForm [name="${fieldName}"]`);
+            if (field) {
+                // Highlight the field
+                field.classList.add('border-red-500');
+                
+                // Find the error message element
+                const errorEl = field.parentElement.querySelector('.field-error');
+                if (errorEl) {
+                    errorEl.textContent = errorMessage;
+                    errorEl.classList.remove('hidden');
+                }
+                
+                // Scroll to first error
+                const firstError = document.querySelector('#registerForm .field-error:not(.hidden)');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        }
+        
         // Helper function to show error in form
         function showRegisterError(message) {
-            const errorDiv = document.getElementById('registerError');
-            const errorMessage = document.getElementById('registerErrorMessage');
+            // Clear previous errors
+            clearFieldErrors();
             
             // Hide success message if visible
             document.getElementById('registerSuccess').classList.add('hidden');
             
-            // Format message with line breaks
-            if (typeof message === 'string') {
+            // Try to parse errors and show them inline
+            const errorLines = message.split('\n').filter(line => line.trim());
+            let hasFieldError = false;
+            
+            errorLines.forEach(line => {
+                line = line.trim();
+                // Map error messages to fields
+                if (line.includes('First name') || line.includes('firstname')) {
+                    showFieldError('firstname', line);
+                    hasFieldError = true;
+                } else if (line.includes('Last name') || line.includes('lastname')) {
+                    showFieldError('lastname', line);
+                    hasFieldError = true;
+                } else if (line.includes('Email') || line.includes('email')) {
+                    showFieldError('email', line);
+                    hasFieldError = true;
+                } else if (line.includes('Username') || line.includes('username')) {
+                    showFieldError('username', line);
+                    hasFieldError = true;
+                } else if (line.includes('Password') && line.includes('match')) {
+                    showFieldError('confirm_password', line);
+                    hasFieldError = true;
+                } else if (line.includes('Password')) {
+                    showFieldError('password', line);
+                    hasFieldError = true;
+                } else if (line.includes('Batch') || line.includes('batch')) {
+                    showFieldError('batch', line);
+                    hasFieldError = true;
+                } else if (line.includes('Course') || line.includes('course')) {
+                    showFieldError('course_id', line);
+                    hasFieldError = true;
+                } else if (line.includes('Gender') || line.includes('gender')) {
+                    showFieldError('gender', line);
+                    hasFieldError = true;
+                } else if (line.includes('Mobile') || line.includes('Contact') || line.includes('mobile')) {
+                    showFieldError('mobile', line);
+                    hasFieldError = true;
+                } else if (line.includes('Address') || line.includes('address')) {
+                    showFieldError('address', line);
+                    hasFieldError = true;
+                }
+            });
+            
+            // If no field-specific errors, show general error at top
+            if (!hasFieldError && message.trim()) {
+                const errorDiv = document.getElementById('registerError');
+                const errorMessage = document.getElementById('registerErrorMessage');
                 errorMessage.innerHTML = message.replace(/\n/g, '<br>');
-            } else {
-                errorMessage.textContent = message;
+                errorDiv.classList.remove('hidden');
+                document.querySelector('#registerModal .modal-content').scrollTop = 0;
             }
-            
-            // Show error
-            errorDiv.classList.remove('hidden');
-            
-            // Scroll to top of modal to see error
-            document.querySelector('#registerModal .modal-content').scrollTop = 0;
         }
         
         function hideRegisterError() {
             document.getElementById('registerError').classList.add('hidden');
+            clearFieldErrors();
         }
 
         // Handle Register Form Submission
