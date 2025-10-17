@@ -21,6 +21,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         mkdir($uploadDirFs, 0777, true);
     }
     
+    // Try to fix permissions if directory is not writable
+    if (!is_writable($uploadDirFs)) {
+        @chmod($uploadDirFs, 0777);
+        // Also try to fix parent directory
+        $parentDir = dirname($uploadDirFs);
+        if (is_dir($parentDir)) {
+            @chmod($parentDir, 0777);
+        }
+    }
+    
     if ($imgFile && $imgFile['tmp_name'] && $imgFile['error'] === UPLOAD_ERR_OK) {
         // Simple file validation
         $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
@@ -96,11 +106,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 header("Location: gallery.php?success=" . urlencode($message));
                 exit;
             } else {
-                $errors[] = "Failed to upload file. Please check directory permissions.";
-                // Add some debugging info
-                error_log("Upload failed - Source: " . $imgFile['tmp_name'] . ", Target: " . $targetPath);
-                error_log("Directory writable: " . (is_writable($uploadDirFs) ? 'Yes' : 'No'));
-                error_log("Temp file exists: " . (file_exists($imgFile['tmp_name']) ? 'Yes' : 'No'));
+                // Try alternative upload location
+                $altUploadDir = __DIR__ . '/assets/uploads';
+                $altTargetPath = $altUploadDir . '/' . $imgName;
+                
+                if (move_uploaded_file($imgFile['tmp_name'], $altTargetPath)) {
+                    // Upload succeeded to alternative location
+                    if ($id) {
+                        $sql = "UPDATE gallery SET about = ? WHERE id = ?";
+                        $stmt = $conn->prepare($sql);
+                        $stmt->bind_param("si", $about, $id);
+                        $stmt->execute();
+                        
+                        $finalName = $id . '_' . $imgName;
+                        @rename($altTargetPath, $altUploadDir . "/$finalName");
+                        $message = "Gallery updated successfully!";
+                    } else {
+                        $sql = "INSERT INTO gallery (about) VALUES (?)";
+                        $stmt = $conn->prepare($sql);
+                        $stmt->bind_param("s", $about);
+                        $stmt->execute();
+                        $newId = $stmt->insert_id;
+                        
+                        $finalName = $newId . '_' . $imgName;
+                        @rename($altTargetPath, $altUploadDir . "/$finalName");
+                        $message = "Gallery added successfully!";
+                    }
+                    
+                    header("Location: gallery.php?success=" . urlencode($message));
+                    exit;
+                } else {
+                    $errors[] = "Failed to upload file. Please run <a href='fix_upload_permissions.php' target='_blank'>fix_upload_permissions.php</a> to fix directory permissions.";
+                    // Add some debugging info
+                    error_log("Upload failed - Source: " . $imgFile['tmp_name'] . ", Target: " . $targetPath);
+                    error_log("Directory writable: " . (is_writable($uploadDirFs) ? 'Yes' : 'No'));
+                    error_log("Temp file exists: " . (file_exists($imgFile['tmp_name']) ? 'Yes' : 'No'));
+                }
             }
         }
     } else {
