@@ -37,7 +37,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $imgName = uniqid() . '_' . time() . '.' . $ext;
             $targetPath = $uploadDirFs . '/' . $imgName;
             
+            // Try multiple upload methods
+            $uploadSuccess = false;
+            
+            // Method 1: move_uploaded_file
             if (move_uploaded_file($imgFile['tmp_name'], $targetPath)) {
+                $uploadSuccess = true;
+            } else {
+                // Method 2: copy
+                if (copy($imgFile['tmp_name'], $targetPath)) {
+                    unlink($imgFile['tmp_name']);
+                    $uploadSuccess = true;
+                } else {
+                    // Method 3: file_get_contents
+                    $content = file_get_contents($imgFile['tmp_name']);
+                    if ($content !== false && file_put_contents($targetPath, $content) !== false) {
+                        unlink($imgFile['tmp_name']);
+                        $uploadSuccess = true;
+                    }
+                }
+            }
+            
+            if ($uploadSuccess) {
                 if ($id) {
                     // Update existing record
                     $sql = "UPDATE gallery SET about = ? WHERE id = ?";
@@ -75,7 +96,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 header("Location: gallery.php?success=" . urlencode($message));
                 exit;
             } else {
-                $errors[] = "Failed to upload file.";
+                $errors[] = "Failed to upload file. Please check directory permissions.";
+                // Add some debugging info
+                error_log("Upload failed - Source: " . $imgFile['tmp_name'] . ", Target: " . $targetPath);
+                error_log("Directory writable: " . (is_writable($uploadDirFs) ? 'Yes' : 'No'));
+                error_log("Temp file exists: " . (file_exists($imgFile['tmp_name']) ? 'Yes' : 'No'));
             }
         }
     } else {
